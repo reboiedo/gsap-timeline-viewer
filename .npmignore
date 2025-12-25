@@ -1,0 +1,28 @@
+# Source files
+src/
+
+# Demo and dev files
+index.html
+demo/
+
+# Config files
+tsconfig.json
+vite.config.ts
+
+# Dev dependencies
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.log

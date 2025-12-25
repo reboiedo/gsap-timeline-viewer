@@ -1,0 +1,706 @@
+import { parseTimeline, resetCounter, type TweenData, type TimelineData } from './utils/gsap-parser';
+import { formatTime } from './utils/time-formatter';
+import styles from './styles/styles.css?inline';
+
+const SPEED_OPTIONS = [0.25, 0.5, 1, 2, 4];
+
+export interface TimelineViewerOptions {
+  timeline?: gsap.core.Timeline;
+  height?: number;
+  collapsed?: boolean;
+  manageBodyPadding?: boolean;
+}
+
+const CONTROLS_HEIGHT = 40;
+
+export class TimelineViewerElement extends HTMLElement {
+  private shadow: ShadowRoot;
+  private timeline: gsap.core.Timeline | null = null;
+  private timelineData: TimelineData | null = null;
+  private isPlaying = false;
+  private isLooping = false;
+  private speedIndex = 2; // 1x
+  private collapsed = false;
+  private height = 200;
+  private isDragging = false;
+  private manageBodyPadding = true;
+  private isAutofit = false;
+
+  // DOM references
+  private container!: HTMLDivElement;
+  private playBtn!: HTMLButtonElement;
+  private loopBtn!: HTMLButtonElement;
+  private speedBtn!: HTMLButtonElement;
+  private timeDisplay!: HTMLSpanElement;
+  private rulerInner!: HTMLDivElement;
+  private tracksScroll!: HTMLDivElement;
+  private playhead!: HTMLDivElement;
+  private scrubArea!: HTMLDivElement;
+  private resizeHandle!: HTMLDivElement;
+  private timelineSelect!: HTMLSelectElement;
+  private isResizing = false;
+
+  constructor() {
+    super();
+    this.shadow = this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+    this.setupEventListeners();
+    this.updateBodyPadding();
+  }
+
+  disconnectedCallback() {
+    this.detachTimeline();
+    this.clearBodyPadding();
+  }
+
+  setTimeline(timeline: gsap.core.Timeline) {
+    this.detachTimeline();
+    this.timeline = timeline;
+    resetCounter();
+    this.timelineData = parseTimeline(timeline);
+
+    // Set up GSAP callbacks
+    timeline.eventCallback('onUpdate', () => this.onTimelineUpdate());
+
+    this.renderTracks();
+    this.updatePlayhead();
+    this.updateTimeDisplay();
+    this.updatePlayState();
+    requestAnimationFrame(() => this.applyAutofit());
+  }
+
+  updateTimelineSelector() {
+    import('./index').then(({ TimelineViewer }) => {
+      const timelines = TimelineViewer.getTimelines();
+      const currentValue = this.timelineSelect.value;
+
+      // Clear and rebuild options
+      this.timelineSelect.innerHTML = '';
+
+      // Add registered timelines
+      timelines.forEach((_, name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        this.timelineSelect.appendChild(option);
+      });
+
+      // Restore selection if still valid
+      if (currentValue && timelines.has(currentValue)) {
+        this.timelineSelect.value = currentValue;
+      }
+    });
+  }
+
+  setSelectedTimeline(name: string) {
+    this.timelineSelect.value = name;
+  }
+
+  private detachTimeline() {
+    if (this.timeline) {
+      this.timeline.eventCallback('onUpdate', null);
+      this.timeline = null;
+      this.timelineData = null;
+    }
+  }
+
+  private render() {
+    this.shadow.innerHTML = `
+      <style>${styles}</style>
+      <div class="gtv-container ${this.collapsed ? 'collapsed' : ''}" style="height: ${this.height}px;">
+        <!-- Controls Bar -->
+        <div class="gtv-controls">
+          <div class="gtv-controls-left">
+            <select class="gtv-timeline-select" title="Select timeline">
+              <option value="">No timeline</option>
+            </select>
+            <button class="gtv-btn" data-action="loop" title="Loop (L)">
+              <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+            </button>
+            <button class="gtv-btn gtv-speed-btn" data-action="speed" title="Playback speed">1x</button>
+          </div>
+
+          <div class="gtv-controls-center">
+            <span class="gtv-time-display">
+              <span class="gtv-time-current">0.00</span>
+              <span class="gtv-time-total"> / 0.00</span>
+            </span>
+            <button class="gtv-btn" data-action="skip-start" title="Skip to start">
+              <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+            </button>
+            <button class="gtv-btn gtv-btn-play" data-action="play" title="Play/Pause (Space)">
+              <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="pause-icon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="gtv-btn" data-action="skip-end" title="Skip to end">
+              <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2 0V6l6.5 6L8 18zm8-12v12h2V6h-2z"/></svg>
+            </button>
+          </div>
+
+          <div class="gtv-controls-right">
+            <button class="gtv-btn" data-action="autofit" title="Auto-fit height">
+              <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+            </button>
+            <button class="gtv-btn gtv-collapse-btn" data-action="collapse" title="Collapse/Expand">
+              <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timeline Area -->
+        <div class="gtv-timeline-area">
+          <!-- Resize Handle -->
+          <div class="gtv-resize-handle"></div>
+
+          <!-- Ruler -->
+          <div class="gtv-ruler">
+            <div class="gtv-ruler-inner"></div>
+          </div>
+
+          <!-- Tracks -->
+          <div class="gtv-tracks-container">
+            <div class="gtv-tracks-scroll">
+              <div class="gtv-scrub-area"></div>
+            </div>
+            <div class="gtv-empty">No timeline attached. Call setTimeline() to visualize a GSAP timeline.</div>
+          </div>
+
+          <!-- Playhead spans entire timeline area -->
+          <div class="gtv-playhead-wrapper">
+            <div class="gtv-playhead">
+              <div class="gtv-playhead-head"></div>
+              <div class="gtv-playhead-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Cache DOM references
+    this.container = this.shadow.querySelector('.gtv-container')!;
+    this.playBtn = this.shadow.querySelector('[data-action="play"]')!;
+    this.loopBtn = this.shadow.querySelector('[data-action="loop"]')!;
+    this.speedBtn = this.shadow.querySelector('[data-action="speed"]')!;
+    this.timeDisplay = this.shadow.querySelector('.gtv-time-display')!;
+    this.rulerInner = this.shadow.querySelector('.gtv-ruler-inner')!;
+    this.tracksScroll = this.shadow.querySelector('.gtv-tracks-scroll')!;
+    this.playhead = this.shadow.querySelector('.gtv-playhead')!;
+    this.scrubArea = this.shadow.querySelector('.gtv-scrub-area')!;
+    this.resizeHandle = this.shadow.querySelector('.gtv-resize-handle')!;
+    this.timelineSelect = this.shadow.querySelector('.gtv-timeline-select')!;
+  }
+
+  private setupEventListeners() {
+    // Button clicks
+    this.shadow.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest('[data-action]') as HTMLElement;
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      switch (action) {
+        case 'play':
+          this.togglePlay();
+          break;
+        case 'skip-start':
+          this.skipToStart();
+          break;
+        case 'skip-end':
+          this.skipToEnd();
+          break;
+        case 'loop':
+          this.toggleLoop();
+          break;
+        case 'speed':
+          this.cycleSpeed();
+          break;
+        case 'collapse':
+          this.toggleCollapse();
+          break;
+        case 'autofit':
+          this.toggleAutofit();
+          break;
+      }
+    });
+
+    // Timeline selector change
+    this.timelineSelect.addEventListener('change', () => {
+      const name = this.timelineSelect.value;
+      if (name) {
+        // Import TimelineViewer to access the registry
+        import('./index').then(({ TimelineViewer }) => {
+          TimelineViewer.getInstance()?.select(name);
+        });
+      }
+    });
+
+    // Track bar click to expand stagger children
+    this.shadow.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const trackBar = target.closest('.gtv-track-bar') as HTMLElement;
+
+      if (trackBar) {
+        const track = trackBar.closest('.gtv-track') as HTMLElement;
+        if (track?.dataset.expandable === 'true') {
+          e.stopPropagation();
+          track.classList.toggle('expanded');
+          // Re-apply autofit after expand/collapse
+          requestAnimationFrame(() => this.applyAutofit());
+        }
+      }
+    });
+
+    // Scrubbing - ruler, tracks background, and scrub area
+    this.scrubArea.addEventListener('mousedown', (e) => this.startScrub(e));
+    this.shadow.querySelector('.gtv-ruler')!.addEventListener('mousedown', (e) => this.startScrub(e as MouseEvent));
+    this.shadow.querySelector('.gtv-tracks-container')!.addEventListener('mousedown', (e) => {
+      // Only trigger if clicking on background, not on a track bar
+      if ((e.target as HTMLElement).closest('.gtv-track-bar')) return;
+      this.startScrub(e as MouseEvent);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      this.onScrub(e);
+      this.onResize(e);
+    });
+    document.addEventListener('mouseup', () => {
+      this.endScrub();
+      this.endResize();
+    });
+
+    // Resize handle
+    this.resizeHandle.addEventListener('mousedown', (e) => this.startResize(e));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target !== document.body) return;
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          this.togglePlay();
+          break;
+        case 'KeyJ':
+          e.preventDefault();
+          this.jumpToPrevPoint();
+          break;
+        case 'KeyK':
+          e.preventDefault();
+          this.jumpToNextPoint();
+          break;
+        case 'KeyL':
+          e.preventDefault();
+          this.toggleLoop();
+          break;
+      }
+    });
+  }
+
+  private startScrub(e: MouseEvent) {
+    if (!this.timeline) return;
+    e.preventDefault();
+    this.isDragging = true;
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    this.scrubToPosition(e);
+  }
+
+  private onScrub(e: MouseEvent) {
+    if (!this.isDragging || !this.timeline) return;
+    this.scrubToPosition(e);
+  }
+
+  private endScrub() {
+    this.isDragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+
+  private startResize(e: MouseEvent) {
+    e.preventDefault();
+    this.isResizing = true;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  private onResize(e: MouseEvent) {
+    if (!this.isResizing) return;
+    const windowHeight = window.innerHeight;
+    const newHeight = windowHeight - e.clientY;
+    this.height = Math.max(100, Math.min(newHeight, windowHeight - 100));
+    this.container.style.height = `${this.height}px`;
+    this.updateBodyPadding();
+  }
+
+  private endResize() {
+    if (!this.isResizing) return;
+    this.isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+
+  private updateBodyPadding() {
+    if (!this.manageBodyPadding) return;
+    const height = this.collapsed ? CONTROLS_HEIGHT : this.height;
+    document.body.style.paddingBottom = `${height}px`;
+  }
+
+  private clearBodyPadding() {
+    if (!this.manageBodyPadding) return;
+    document.body.style.paddingBottom = '';
+  }
+
+  private scrubToPosition(e: MouseEvent) {
+    if (!this.timeline || !this.timelineData) return;
+
+    const rect = this.rulerInner.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const progress = x / rect.width;
+
+    this.timeline.progress(progress);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private togglePlay() {
+    if (!this.timeline) return;
+
+    if (this.timeline.paused() || this.timeline.progress() === 1) {
+      if (this.timeline.progress() === 1) {
+        this.timeline.restart();
+      } else {
+        this.timeline.play();
+      }
+    } else {
+      this.timeline.pause();
+    }
+
+    this.updatePlayState();
+  }
+
+  private skipToStart() {
+    if (!this.timeline) return;
+    this.timeline.progress(0);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private skipToEnd() {
+    if (!this.timeline) return;
+    this.timeline.progress(1);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private getTimePoints(): number[] {
+    if (!this.timelineData) return [0];
+    const points = new Set<number>();
+    points.add(0);
+    points.add(Math.round(this.timelineData.duration * 1000) / 1000);
+    this.timelineData.tweens.forEach(tween => {
+      points.add(Math.round(tween.startTime * 1000) / 1000);
+      points.add(Math.round(tween.endTime * 1000) / 1000);
+    });
+    return Array.from(points).sort((a, b) => a - b);
+  }
+
+  private jumpToPrevPoint() {
+    if (!this.timeline || !this.timelineData) return;
+    const currentTime = Math.round(this.timeline.time() * 1000) / 1000;
+    const points = this.getTimePoints();
+
+    // Find the largest point that is less than current time
+    let prevPoint = 0;
+    for (const p of points) {
+      if (p < currentTime - 0.001) {
+        prevPoint = p;
+      } else {
+        break;
+      }
+    }
+
+    this.timeline.time(prevPoint);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private jumpToNextPoint() {
+    if (!this.timeline || !this.timelineData) return;
+    const currentTime = Math.round(this.timeline.time() * 1000) / 1000;
+    const points = this.getTimePoints();
+
+    // Find the smallest point that is greater than current time
+    let nextPoint = this.timelineData.duration;
+    for (const p of points) {
+      if (p > currentTime + 0.001) {
+        nextPoint = p;
+        break;
+      }
+    }
+
+    this.timeline.time(nextPoint);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private toggleLoop() {
+    if (!this.timeline) return;
+    this.isLooping = !this.isLooping;
+    this.timeline.repeat(this.isLooping ? -1 : 0);
+    this.loopBtn.classList.toggle('active', this.isLooping);
+  }
+
+  private cycleSpeed() {
+    if (!this.timeline) return;
+    this.speedIndex = (this.speedIndex + 1) % SPEED_OPTIONS.length;
+    const speed = SPEED_OPTIONS[this.speedIndex];
+    this.timeline.timeScale(speed);
+    this.speedBtn.textContent = `${speed}x`;
+  }
+
+  private toggleCollapse() {
+    this.collapsed = !this.collapsed;
+    this.container.classList.toggle('collapsed', this.collapsed);
+    const btn = this.shadow.querySelector('[data-action="collapse"]')!;
+    btn.innerHTML = this.collapsed
+      ? '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
+    this.updateBodyPadding();
+  }
+
+  private toggleAutofit() {
+    this.isAutofit = !this.isAutofit;
+    const btn = this.shadow.querySelector('[data-action="autofit"]')!;
+    btn.classList.toggle('active', this.isAutofit);
+    if (this.isAutofit) {
+      this.applyAutofit();
+    }
+  }
+
+  private applyAutofit() {
+    if (!this.isAutofit || this.collapsed) return;
+
+    // Calculate height based on actual visible tracks
+    const tracks = this.shadow.querySelectorAll('.gtv-track');
+    let tracksHeight = 0;
+    const trackHeight = 28; // --gtv-track-height
+    const childHeight = 22; // slightly smaller for children
+
+    tracks.forEach(track => {
+      tracksHeight += trackHeight; // main track
+      if (track.classList.contains('expanded')) {
+        const children = track.querySelectorAll('.gtv-stagger-child');
+        tracksHeight += children.length * childHeight;
+      }
+    });
+
+    const rulerHeight = 24;
+    const padding = 16;
+    const minHeight = 100;
+    const maxHeight = window.innerHeight - 100;
+
+    this.height = Math.max(minHeight, Math.min(CONTROLS_HEIGHT + rulerHeight + tracksHeight + padding, maxHeight));
+    this.container.style.height = `${this.height}px`;
+    this.updateBodyPadding();
+  }
+
+  private updatePlayState() {
+    if (!this.timeline) return;
+    this.isPlaying = !this.timeline.paused() && this.timeline.progress() < 1;
+
+    const playIcon = this.playBtn.querySelector('.play-icon') as HTMLElement;
+    const pauseIcon = this.playBtn.querySelector('.pause-icon') as HTMLElement;
+
+    playIcon.style.display = this.isPlaying ? 'none' : 'block';
+    pauseIcon.style.display = this.isPlaying ? 'block' : 'none';
+  }
+
+  private onTimelineUpdate() {
+    this.updatePlayhead();
+    this.updateTimeDisplay();
+    this.updateActiveTracks();
+    this.updatePlayState();
+  }
+
+  private updatePlayhead() {
+    if (!this.timeline || !this.timelineData) return;
+
+    const progress = this.timeline.progress();
+    this.playhead.style.left = `${progress * 100}%`;
+  }
+
+  private updateTimeDisplay() {
+    if (!this.timeline || !this.timelineData) return;
+
+    const currentTime = this.timeline.time();
+    const totalTime = this.timelineData.duration;
+
+    const currentSpan = this.timeDisplay.querySelector('.gtv-time-current')!;
+    const totalSpan = this.timeDisplay.querySelector('.gtv-time-total')!;
+
+    currentSpan.textContent = formatTime(currentTime);
+    totalSpan.textContent = ` / ${formatTime(totalTime)}`;
+  }
+
+  private updateActiveTracks() {
+    if (!this.timeline || !this.timelineData) return;
+
+    const currentTime = this.timeline.time();
+    const bars = this.tracksScroll.querySelectorAll('.gtv-track-bar') as NodeListOf<HTMLElement>;
+
+    bars.forEach((bar, index) => {
+      const tween = this.timelineData!.tweens[index];
+      const isActive = currentTime >= tween.startTime && currentTime <= tween.endTime;
+      const colorIndex = bar.dataset.color;
+
+      if (isActive) {
+        bar.style.background = `var(--gtv-track-${colorIndex}-active)`;
+      } else {
+        bar.style.background = `var(--gtv-track-${colorIndex})`;
+      }
+    });
+  }
+
+  private renderTracks() {
+    if (!this.timelineData) return;
+
+    const { duration, tweens } = this.timelineData;
+
+    // Hide empty state
+    const emptyState = this.shadow.querySelector('.gtv-empty') as HTMLElement;
+    emptyState.style.display = tweens.length > 0 ? 'none' : 'flex';
+
+    // Render ruler markers
+    this.renderRuler(duration);
+
+    // Render grid lines
+    const gridLines = this.renderGridLines(duration);
+
+    // Render track bars
+    const tracksHtml = tweens
+      .map((tween) => this.renderTrack(tween, duration))
+      .join('');
+
+    // Get existing structure elements
+    const scrubArea = this.tracksScroll.querySelector('.gtv-scrub-area')!;
+
+    // Clear and rebuild
+    this.tracksScroll.innerHTML = gridLines + tracksHtml;
+    this.tracksScroll.prepend(scrubArea);
+
+    // Re-attach scrub area reference
+    this.scrubArea = scrubArea as HTMLDivElement;
+  }
+
+  private renderGridLines(duration: number): string {
+    const lines: string[] = [];
+    const interval = this.calculateInterval(duration);
+
+    for (let time = 0; time <= duration; time += interval) {
+      const left = (time / duration) * 100;
+      lines.push(`<div class="gtv-grid-line" style="left: ${left}%;"></div>`);
+    }
+
+    return lines.join('');
+  }
+
+  private renderRuler(duration: number) {
+    const markers: string[] = [];
+    const interval = this.calculateInterval(duration);
+
+    for (let time = 0; time <= duration; time += interval) {
+      const left = (time / duration) * 100;
+      markers.push(`
+        <div class="gtv-ruler-marker" style="left: ${left}%;">
+          <div class="gtv-ruler-marker-line"></div>
+          <span class="gtv-ruler-marker-label">${formatTime(time, false)}s</span>
+        </div>
+      `);
+    }
+
+    this.rulerInner.innerHTML = markers.join('');
+  }
+
+  private calculateInterval(duration: number): number {
+    if (duration <= 1) return 0.25;
+    if (duration <= 3) return 0.5;
+    if (duration <= 10) return 1;
+    if (duration <= 30) return 5;
+    return 10;
+  }
+
+  private renderTrack(tween: TweenData, totalDuration: number): string {
+    const left = (tween.startTime / totalDuration) * 100;
+    const width = (tween.duration / totalDuration) * 100;
+    const colorIndex = tween.colorIndex + 1;
+
+    // Stagger indicator with expand arrow
+    let staggerLabel = '';
+    if (tween.hasStagger && tween.staggerChildren && tween.staggerChildren.length > 0) {
+      staggerLabel = `<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>`;
+    }
+
+    // Build stagger children HTML
+    let childrenHtml = '';
+    if (tween.staggerChildren && tween.staggerChildren.length > 0) {
+      const childBars = tween.staggerChildren.map((child) => {
+        const childLeft = (child.startTime / totalDuration) * 100;
+        const childWidth = ((child.endTime - child.startTime) / totalDuration) * 100;
+        return `
+          <div class="gtv-stagger-child">
+            <div class="gtv-stagger-child-bar"
+                 style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex});">
+              <span class="gtv-track-label">${child.targetLabel}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      childrenHtml = `<div class="gtv-stagger-children" data-for="${tween.id}">${childBars}</div>`;
+    }
+
+    // Overlap/gap indicator
+    let overlapHtml = '';
+    if (tween.overlapWithPrev !== undefined) {
+      const isOverlap = tween.overlapWithPrev > 0;
+      const overlapWidth = (Math.abs(tween.overlapWithPrev) / totalDuration) * 100;
+      const offsetLabel = isOverlap
+        ? `-${formatTime(tween.overlapWithPrev)}s`
+        : `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
+
+      if (isOverlap) {
+        // Overlap: hatched region at the start of this tween
+        overlapHtml = `
+          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${left}%;">${offsetLabel}</span>
+        `;
+      } else {
+        // Gap: dotted connector before this tween
+        const gapLeft = left - overlapWidth;
+        overlapHtml = `
+          <div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${left}%;">${offsetLabel}</span>
+        `;
+      }
+    }
+
+    return `
+      <div class="gtv-track" data-expandable="${tween.hasStagger && tween.staggerChildren ? 'true' : 'false'}">
+        ${overlapHtml}
+        <div class="gtv-track-bar"
+             data-color="${colorIndex}"
+             data-tween-id="${tween.id}"
+             style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex});">
+          <span class="gtv-track-label">${tween.label}</span>
+          ${staggerLabel}
+        </div>
+        ${childrenHtml}
+      </div>
+    `;
+  }
+}
+
+// Register the custom element
+customElements.define('gsap-timeline-viewer', TimelineViewerElement);

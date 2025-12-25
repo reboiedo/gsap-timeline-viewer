@@ -1,0 +1,51 @@
+{
+  "name": "gsap-timeline-viewer",
+  "version": "0.1.2",
+  "description": "A lightweight, framework-agnostic timeline viewer for GSAP animations",
+  "type": "module",
+  "main": "./dist/gsap-timeline-viewer.umd.cjs",
+  "module": "./dist/gsap-timeline-viewer.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/gsap-timeline-viewer.js",
+      "require": "./dist/gsap-timeline-viewer.umd.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "gsap",
+    "timeline",
+    "animation",
+    "devtools",
+    "viewer",
+    "debug"
+  ],
+  "author": "reboiedo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reboiedo/gsap-timeline-viewer.git"
+  },
+  "homepage": "https://github.com/reboiedo/gsap-timeline-viewer#readme",
+  "bugs": {
+    "url": "https://github.com/reboiedo/gsap-timeline-viewer/issues"
+  },
+  "peerDependencies": {
+    "gsap": "^3.0.0"
+  },
+  "devDependencies": {
+    "gsap": "^3.12.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.0"
+  }
+}

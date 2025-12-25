@@ -1,0 +1,454 @@
+:host {
+  --gtv-bg: #1a1a1a;
+  --gtv-bg-secondary: #252525;
+  --gtv-border: #333;
+  --gtv-text: #e0e0e0;
+  --gtv-text-muted: #888;
+  --gtv-accent: oklch(65% 0.15 220);
+  --gtv-playhead: oklch(65% 0.15 220);
+  --gtv-ruler-bg: #1f1f1f;
+  --gtv-track-height: 28px;
+  --gtv-controls-height: 40px;
+  --gtv-ruler-height: 24px;
+  --gtv-timeline-padding: 16px;
+
+  /* Track colors - oklch for better perceptual uniformity */
+  --gtv-track-1: oklch(50% 0.12 220);
+  --gtv-track-1-active: oklch(60% 0.15 220);
+  --gtv-track-2: oklch(50% 0.12 70);
+  --gtv-track-2-active: oklch(60% 0.15 70);
+  --gtv-track-3: oklch(50% 0.12 350);
+  --gtv-track-3-active: oklch(60% 0.15 350);
+  --gtv-track-4: oklch(50% 0.12 160);
+  --gtv-track-4-active: oklch(60% 0.15 160);
+  --gtv-track-5: oklch(50% 0.12 290);
+  --gtv-track-5-active: oklch(60% 0.15 290);
+  --gtv-track-6: oklch(50% 0.12 25);
+  --gtv-track-6-active: oklch(60% 0.15 25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.gtv-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--gtv-bg);
+  border-top: 1px solid var(--gtv-border);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  color: var(--gtv-text);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.gtv-container.collapsed {
+  height: auto !important;
+}
+
+.gtv-container.collapsed .gtv-timeline-area {
+  display: none;
+}
+
+/* Controls Bar */
+.gtv-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--gtv-controls-height);
+  padding: 0 12px;
+  background: var(--gtv-bg-secondary);
+  border-bottom: 1px solid var(--gtv-border);
+  gap: 8px;
+}
+
+.gtv-controls-left {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gtv-controls-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gtv-controls-right {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gtv-time-display {
+  font-variant-numeric: tabular-nums;
+  min-width: 100px;
+  text-align: center;
+}
+
+.gtv-time-current {
+  color: var(--gtv-text);
+}
+
+.gtv-time-total {
+  color: var(--gtv-text-muted);
+}
+
+.gtv-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--gtv-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gtv-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gtv-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.gtv-btn.active {
+  color: var(--gtv-accent);
+}
+
+.gtv-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.gtv-btn-play svg {
+  width: 20px;
+  height: 20px;
+}
+
+.gtv-speed-btn {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.gtv-timeline-select {
+  background: var(--gtv-bg);
+  border: 1px solid var(--gtv-border);
+  border-radius: 4px;
+  color: var(--gtv-text);
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  max-width: 140px;
+}
+
+.gtv-timeline-select:focus {
+  outline: none;
+  border-color: var(--gtv-accent);
+}
+
+.gtv-collapse-btn {
+  margin-left: auto;
+}
+
+/* Timeline Area */
+.gtv-timeline-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Resize Handle */
+.gtv-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 20;
+}
+
+.gtv-resize-handle:hover,
+.gtv-resize-handle:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ruler */
+.gtv-ruler {
+  position: relative;
+  height: var(--gtv-ruler-height);
+  background: var(--gtv-ruler-bg);
+  border-bottom: 1px solid var(--gtv-border);
+  overflow: visible;
+  flex-shrink: 0;
+  padding: 0 var(--gtv-timeline-padding);
+}
+
+.gtv-ruler-inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.gtv-ruler-marker {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gtv-ruler-marker-line {
+  width: 1px;
+  height: 6px;
+  background: var(--gtv-text-muted);
+}
+
+.gtv-ruler-marker-label {
+  font-size: 10px;
+  color: var(--gtv-text-muted);
+  margin-top: 2px;
+}
+
+/* Vertical grid lines extending through tracks */
+.gtv-grid-line {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--gtv-border);
+  pointer-events: none;
+}
+
+/* Tracks Container */
+.gtv-tracks-container {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding: 0 var(--gtv-timeline-padding);
+}
+
+.gtv-tracks-scroll {
+  position: relative;
+  min-height: 100%;
+  width: 100%;
+}
+
+/* Individual Track */
+.gtv-track {
+  position: relative;
+  padding-top: var(--gtv-track-height);
+}
+
+.gtv-track-bar {
+  position: absolute;
+  top: 4px;
+  height: calc(var(--gtv-track-height) - 8px);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  overflow: hidden;
+  cursor: default;
+  transition: filter 0.15s;
+}
+
+.gtv-track-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.gtv-track-stagger {
+  opacity: 0.7;
+  font-size: 10px;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+.gtv-track-bar:hover {
+  filter: brightness(1.1);
+}
+
+/* Playhead - spans entire timeline area */
+.gtv-playhead-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--gtv-timeline-padding);
+  right: var(--gtv-timeline-padding);
+  pointer-events: none;
+  z-index: 15;
+}
+
+.gtv-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  left: 0;
+}
+
+.gtv-playhead-head {
+  position: absolute;
+  top: 6px;
+  left: -5px;
+  width: 11px;
+  height: 11px;
+  background: var(--gtv-playhead);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+}
+
+.gtv-playhead-line {
+  position: absolute;
+  top: 6px;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--gtv-playhead);
+}
+
+/* Scrub area */
+.gtv-scrub-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: ew-resize;
+}
+
+/* Expandable Stagger Children */
+.gtv-track[data-expandable="true"] .gtv-track-bar {
+  cursor: pointer;
+}
+
+.gtv-expand-icon {
+  transition: transform 0.2s;
+}
+
+.gtv-track.expanded .gtv-expand-icon {
+  transform: rotate(180deg);
+}
+
+.gtv-stagger-children {
+  display: none;
+  position: relative;
+  width: 100%;
+}
+
+.gtv-track.expanded .gtv-stagger-children {
+  display: block;
+}
+
+.gtv-stagger-child {
+  position: relative;
+  width: 100%;
+  height: calc(var(--gtv-track-height) - 6px);
+}
+
+.gtv-stagger-child-bar {
+  position: absolute;
+  top: 2px;
+  height: calc(var(--gtv-track-height) - 12px);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 10px;
+  color: #fff;
+  opacity: 0.7;
+  overflow: hidden;
+}
+
+.gtv-stagger-child-bar .gtv-track-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Overlap/Gap Indicators */
+.gtv-overlap-region {
+  position: absolute;
+  top: 4px;
+  height: calc(var(--gtv-track-height) - 8px);
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.15) 2px,
+    rgba(255, 255, 255, 0.15) 4px
+  );
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.gtv-gap-connector {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  border-top: 1px dashed var(--gtv-text-muted);
+  pointer-events: none;
+}
+
+.gtv-offset-badge {
+  position: absolute;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  margin-left: -4px;
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.gtv-offset-overlap,
+.gtv-offset-gap {
+  background: var(--gtv-bg-secondary);
+  border: 1px solid var(--gtv-border);
+  color: var(--gtv-text-muted);
+}
+
+/* Empty state */
+.gtv-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--gtv-text-muted);
+}
