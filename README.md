@@ -39,8 +39,8 @@ npm install gsap
 import { TimelineViewer } from 'gsap-timeline-viewer';
 import gsap from 'gsap';
 
-// Create the viewer - that's it!
-TimelineViewer.create();
+// Create the viewer - pass gsap for ES module imports
+TimelineViewer.create({ gsap });
 
 // All timelines are auto-detected
 const tl = gsap.timeline({ id: 'My Animation' });
@@ -58,6 +58,7 @@ Creates and attaches the viewer to the page. Call once - subsequent calls return
 
 ```typescript
 TimelineViewer.create({
+  gsap: gsap,            // Required for ES module imports, optional for UMD/script tag
   height: 200,           // Optional: Initial panel height (default: 200)
   collapsed: false,      // Optional: Start collapsed (default: false)
   defaultTimeline: 'My Animation',  // Optional: Auto-select this timeline
@@ -107,6 +108,23 @@ tl.to('.hero', {
   id: 'Hero Fade In'  // Shows in viewer instead of ".hero (opacity)"
 });
 ```
+
+## ES Modules (React, Vue, Astro, etc.)
+
+When using gsap as an ES module import, you must pass the gsap instance to the viewer:
+
+```javascript
+import gsap from 'gsap';
+import { TimelineViewer } from 'gsap-timeline-viewer';
+
+// Pass gsap so the viewer can access globalTimeline
+TimelineViewer.create({ gsap });
+
+const tl = gsap.timeline({ id: 'My Animation' });
+tl.to('.box', { x: 100, duration: 1 });
+```
+
+This is required because ES module imports don't set `window.gsap`.
 
 ## UMD / Script Tag
 
