@@ -7,7 +7,7 @@
   --gtv-accent: oklch(65% 0.15 220);
   --gtv-playhead: oklch(65% 0.15 220);
   --gtv-ruler-bg: #1f1f1f;
-  --gtv-track-height: 28px;
+  --gtv-track-height: 36px;
   --gtv-controls-height: 40px;
   --gtv-ruler-height: 24px;
   --gtv-timeline-padding: 16px;
@@ -288,17 +288,45 @@
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .gtv-track-stagger {
-  opacity: 0.7;
   font-size: 10px;
   font-weight: 400;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .gtv-track-bar:hover {
   filter: brightness(1.1);
+}
+
+/* Ease curve visualization */
+.gtv-ease-curve {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.gtv-ease-curve path {
+  fill: var(--track-color);
+  stroke: none;
+}
+
+.gtv-container.show-ease-curves .gtv-ease-curve {
+  opacity: 1;
+}
+
+.gtv-container.show-ease-curves .gtv-track-bar,
+.gtv-container.show-ease-curves .gtv-stagger-child-bar {
+  background: transparent !important;
 }
 
 /* Playhead - spans entire timeline area */
@@ -388,12 +416,13 @@
   padding: 0 6px;
   font-size: 10px;
   color: #fff;
-  opacity: 0.7;
   overflow: hidden;
 }
 
 .gtv-stagger-child-bar .gtv-track-label {
   overflow: hidden;
+  position: relative;
+  z-index: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -413,6 +442,10 @@
   border-radius: 4px;
   pointer-events: none;
   z-index: 5;
+}
+
+.gtv-container.show-ease-curves .gtv-overlap-region {
+  display: none;
 }
 
 .gtv-gap-connector {

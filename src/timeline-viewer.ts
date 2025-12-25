@@ -25,6 +25,7 @@ export class TimelineViewerElement extends HTMLElement {
   private isDragging = false;
   private manageBodyPadding = true;
   private isAutofit = false;
+  private showEaseCurves = false;
 
   // DOM references
   private container!: HTMLDivElement;
@@ -141,6 +142,9 @@ export class TimelineViewerElement extends HTMLElement {
           </div>
 
           <div class="gtv-controls-right">
+            <button class="gtv-btn" data-action="ease-curves" title="Show ease curves">
+              <svg viewBox="0 0 24 24"><path d="M3 17c0 0 3-8 9-8s9 8 9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
             <button class="gtv-btn" data-action="autofit" title="Auto-fit height">
               <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
             </button>
@@ -222,6 +226,9 @@ export class TimelineViewerElement extends HTMLElement {
           break;
         case 'autofit':
           this.toggleAutofit();
+          break;
+        case 'ease-curves':
+          this.toggleEaseCurves();
           break;
       }
     });
@@ -479,14 +486,21 @@ export class TimelineViewerElement extends HTMLElement {
     }
   }
 
+  private toggleEaseCurves() {
+    this.showEaseCurves = !this.showEaseCurves;
+    const btn = this.shadow.querySelector('[data-action="ease-curves"]')!;
+    btn.classList.toggle('active', this.showEaseCurves);
+    this.container.classList.toggle('show-ease-curves', this.showEaseCurves);
+  }
+
   private applyAutofit() {
     if (!this.isAutofit || this.collapsed) return;
 
     // Calculate height based on actual visible tracks
     const tracks = this.shadow.querySelectorAll('.gtv-track');
     let tracksHeight = 0;
-    const trackHeight = 28; // --gtv-track-height
-    const childHeight = 22; // slightly smaller for children
+    const trackHeight = 36; // --gtv-track-height
+    const childHeight = 30; // slightly smaller for children
 
     tracks.forEach(track => {
       tracksHeight += trackHeight; // main track
@@ -631,10 +645,46 @@ export class TimelineViewerElement extends HTMLElement {
     return 10;
   }
 
+  private renderEaseCurve(samples: number[] | undefined): string {
+    if (!samples?.length) return '';
+
+    // Build path for filled area from bottom up to the curve
+    const curvePoints = samples.map((y, i) => {
+      const x = (i / (samples.length - 1)) * 100;
+      const yPos = 100 - (y * 100);  // Flip Y axis
+      return `${x},${yPos}`;
+    }).join(' L');
+
+    // Path: start at bottom-left, line to first point, curve points, then to bottom-right, close
+    const path = `M0,100 L${curvePoints} L100,100 Z`;
+
+    return `
+      <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="${path}" />
+      </svg>
+    `;
+  }
+
+  private getEaseClipPath(samples: number[] | undefined): string {
+    if (!samples?.length) return '';
+
+    // Generate polygon clip-path from ease samples
+    const curvePoints = samples.map((y, i) => {
+      const x = (i / (samples.length - 1)) * 100;
+      const yPos = 100 - (y * 100);  // Flip Y axis
+      return `${x}% ${yPos}%`;
+    }).join(', ');
+
+    return `polygon(0% 100%, ${curvePoints}, 100% 100%)`;
+  }
+
   private renderTrack(tween: TweenData, totalDuration: number): string {
     const left = (tween.startTime / totalDuration) * 100;
     const width = (tween.duration / totalDuration) * 100;
     const colorIndex = tween.colorIndex + 1;
+
+    // Ease curve SVG
+    const easeCurveHtml = this.renderEaseCurve(tween.easeSamples);
 
     // Stagger indicator with expand arrow
     let staggerLabel = '';
@@ -651,7 +701,8 @@ export class TimelineViewerElement extends HTMLElement {
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex});">
+                 style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex});">
+              ${easeCurveHtml}
               <span class="gtv-track-label">${child.targetLabel}</span>
             </div>
           </div>
@@ -670,10 +721,13 @@ export class TimelineViewerElement extends HTMLElement {
         ? `-${formatTime(tween.overlapWithPrev)}s`
         : `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
 
+      // Get clip-path for ease curve clipping
+      const easeClipPath = this.getEaseClipPath(tween.easeSamples);
+
       if (isOverlap) {
         // Overlap: hatched region at the start of this tween
         overlapHtml = `
-          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>
+          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%; --ease-clip: ${easeClipPath};"></div>
           <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${left}%;">${offsetLabel}</span>
         `;
       } else {
@@ -692,7 +746,8 @@ export class TimelineViewerElement extends HTMLElement {
         <div class="gtv-track-bar"
              data-color="${colorIndex}"
              data-tween-id="${tween.id}"
-             style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex});">
+             style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex});">
+          ${easeCurveHtml}
           <span class="gtv-track-label">${tween.label}</span>
           ${staggerLabel}
         </div>

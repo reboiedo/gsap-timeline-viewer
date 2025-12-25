@@ -15,6 +15,7 @@ export interface TweenData {
   colorIndex: number;
   hasStagger: boolean;
   ease: string;
+  easeSamples?: number[];  // Y values sampled at regular X intervals (0-1)
   staggerValue?: number;
   staggerChildren?: StaggerChild[];
   overlapWithPrev?: number;  // positive = overlap, negative = gap
@@ -57,6 +58,23 @@ function getAnimatedProperties(vars: Record<string, unknown>): string[] {
   ];
 
   return Object.keys(vars).filter(key => !ignore.includes(key));
+}
+
+/**
+ * Sample an ease function to get curve points for visualization.
+ */
+function sampleEase(easeName: string, points = 20): number[] {
+  const gsapObj = (window as unknown as { gsap?: typeof gsap }).gsap;
+  if (!gsapObj?.parseEase) return [];
+
+  const easeFunc = gsapObj.parseEase(easeName);
+  if (!easeFunc) return [];
+
+  const samples: number[] = [];
+  for (let i = 0; i <= points; i++) {
+    samples.push(easeFunc(i / points));
+  }
+  return samples;
 }
 
 export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
@@ -132,6 +150,7 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
       colorIndex: index % 6,
       hasStagger: !!vars.stagger,
       ease,
+      easeSamples: sampleEase(ease),
       staggerValue,
       staggerChildren,
     });

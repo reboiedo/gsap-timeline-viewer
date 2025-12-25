@@ -57,6 +57,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private isDragging;
     private manageBodyPadding;
     private isAutofit;
+    private showEaseCurves;
     private container;
     private playBtn;
     private loopBtn;
@@ -97,6 +98,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private cycleSpeed;
     private toggleCollapse;
     private toggleAutofit;
+    private toggleEaseCurves;
     private applyAutofit;
     private updatePlayState;
     private onTimelineUpdate;
@@ -107,6 +109,8 @@ export declare class TimelineViewerElement extends HTMLElement {
     private renderGridLines;
     private renderRuler;
     private calculateInterval;
+    private renderEaseCurve;
+    private getEaseClipPath;
     private renderTrack;
 }
 

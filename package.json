@@ -1,6 +1,6 @@
 {
   "name": "gsap-timeline-viewer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A lightweight, framework-agnostic timeline viewer for GSAP animations",
   "type": "module",
   "main": "./dist/gsap-timeline-viewer.umd.cjs",
@@ -27,7 +27,13 @@
     "animation",
     "devtools",
     "viewer",
-    "debug"
+    "debug",
+    "greensock",
+    "inspector",
+    "visualization",
+    "easing",
+    "tween",
+    "scrubber"
   ],
   "author": "reboiedo",
   "license": "MIT",
