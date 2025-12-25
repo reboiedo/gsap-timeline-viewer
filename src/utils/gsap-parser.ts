@@ -61,14 +61,35 @@ function getAnimatedProperties(vars: Record<string, unknown>): string[] {
 }
 
 /**
- * Sample an ease function to get curve points for visualization.
+ * Generate linear ease samples as fallback.
  */
-function sampleEase(easeName: string, points = 20): number[] {
-  const gsapObj = (window as unknown as { gsap?: typeof gsap }).gsap;
-  if (!gsapObj?.parseEase) return [];
+function linearEaseSamples(points = 20): number[] {
+  const samples: number[] = [];
+  for (let i = 0; i <= points; i++) {
+    samples.push(i / points);
+  }
+  return samples;
+}
 
-  const easeFunc = gsapObj.parseEase(easeName);
-  if (!easeFunc) return [];
+/**
+ * Sample an ease function to get curve points for visualization.
+ * Tries GSAP's parseEase first, falls back to tween._ease, then linear.
+ */
+function sampleEase(easeName: string, tween?: gsap.core.Tween, points = 20): number[] {
+  const gsapObj = (window as unknown as { gsap?: typeof gsap }).gsap;
+
+  // First try parseEase with the ease name (works best for named eases)
+  let easeFunc = gsapObj?.parseEase?.(easeName);
+
+  // If parseEase failed, try tween's internal _ease as fallback
+  if (!easeFunc && tween) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    easeFunc = (tween as any)._ease;
+  }
+
+  if (!easeFunc) {
+    return linearEaseSamples(points);
+  }
 
   const samples: number[] = [];
   for (let i = 0; i <= points; i++) {
@@ -105,8 +126,8 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
     const startTime = child.startTime();
     const duration = child.duration();
 
-    // Get ease name
-    let ease = 'none';
+    // Get ease name (GSAP default is "power1.out")
+    let ease = 'power1.out';
     if (vars.ease) {
       ease = typeof vars.ease === 'string' ? vars.ease : 'custom';
     }
@@ -150,7 +171,7 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
       colorIndex: index % 6,
       hasStagger: !!vars.stagger,
       ease,
-      easeSamples: sampleEase(ease),
+      easeSamples: sampleEase(ease, tween),
       staggerValue,
       staggerChildren,
     });

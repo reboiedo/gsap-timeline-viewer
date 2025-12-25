@@ -1,13 +1,13 @@
 var M = Object.defineProperty;
-var D = (l, i, t) => i in l ? M(l, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[i] = t;
-var o = (l, i, t) => D(l, typeof i != "symbol" ? i + "" : i, t);
+var D = (o, i, t) => i in o ? M(o, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[i] = t;
+var l = (o, i, t) => D(o, typeof i != "symbol" ? i + "" : i, t);
 let C = 0;
-function k(l) {
-  if (!l || l.length === 0) return "Unknown";
-  const i = l[0];
+function k(o) {
+  if (!o || o.length === 0) return "Unknown";
+  const i = o[0];
   return i.id ? `#${i.id}` : i.classList && i.classList.length > 0 ? `.${i.classList[0]}` : i.tagName ? i.tagName.toLowerCase() : "element";
 }
-function A(l) {
+function A(o) {
   const i = [
     "ease",
     "duration",
@@ -31,21 +31,28 @@ function A(l) {
     "reversed",
     "startAt"
   ];
-  return Object.keys(l).filter((t) => !i.includes(t));
+  return Object.keys(o).filter((t) => !i.includes(t));
 }
-function H(l, i = 20) {
-  const t = window.gsap;
-  if (!(t != null && t.parseEase)) return [];
-  const e = t.parseEase(l);
-  if (!e) return [];
-  const s = [];
-  for (let a = 0; a <= i; a++)
-    s.push(e(a / i));
-  return s;
-}
-function q(l) {
+function H(o = 20) {
   const i = [];
-  l.getChildren(!0, !0, !1).forEach((e, s) => {
+  for (let t = 0; t <= o; t++)
+    i.push(t / o);
+  return i;
+}
+function q(o, i, t = 20) {
+  var n;
+  const e = window.gsap;
+  let s = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o);
+  if (!s && i && (s = i._ease), !s)
+    return H(t);
+  const a = [];
+  for (let r = 0; r <= t; r++)
+    a.push(s(r / t));
+  return a;
+}
+function I(o) {
+  const i = [];
+  o.getChildren(!0, !0, !1).forEach((e, s) => {
     if (!("targets" in e)) return;
     const a = e, n = a.targets(), r = a.vars || {}, d = A(r);
     let m = "";
@@ -56,7 +63,7 @@ function q(l) {
       m = x ? `${b} (${x})` : b;
     }
     const p = e.startTime(), u = e.duration();
-    let g = "none";
+    let g = "power1.out";
     r.ease && (g = typeof r.ease == "string" ? r.ease : "custom");
     let h, f;
     if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? h = r.stagger : typeof r.stagger == "object" && (h = r.stagger.each || 0), h)) {
@@ -81,7 +88,7 @@ function q(l) {
       colorIndex: s % 6,
       hasStagger: !!r.stagger,
       ease: g,
-      easeSamples: H(g),
+      easeSamples: q(g, a),
       staggerValue: h,
       staggerChildren: f
     });
@@ -91,47 +98,47 @@ function q(l) {
     Math.abs(n) > 1e-3 && (a.overlapWithPrev = Math.round(n * 1e3) / 1e3);
   }
   return {
-    duration: l.duration(),
+    duration: o.duration(),
     tweens: i
   };
 }
-function I() {
+function R() {
   C = 0;
 }
-function y(l, i = !0) {
-  const t = Math.abs(l);
+function y(o, i = !0) {
+  const t = Math.abs(o);
   return i ? t.toFixed(2) : t.toFixed(0);
 }
-const R = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", z = [0.25, 0.5, 1, 2, 4], L = 40;
+const j = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", z = [0.25, 0.5, 1, 2, 4], L = 40;
 class E extends HTMLElement {
   constructor() {
     super();
-    o(this, "shadow");
-    o(this, "timeline", null);
-    o(this, "timelineData", null);
-    o(this, "isPlaying", !1);
-    o(this, "isLooping", !1);
-    o(this, "speedIndex", 2);
+    l(this, "shadow");
+    l(this, "timeline", null);
+    l(this, "timelineData", null);
+    l(this, "isPlaying", !1);
+    l(this, "isLooping", !1);
+    l(this, "speedIndex", 2);
     // 1x
-    o(this, "collapsed", !1);
-    o(this, "height", 200);
-    o(this, "isDragging", !1);
-    o(this, "manageBodyPadding", !0);
-    o(this, "isAutofit", !1);
-    o(this, "showEaseCurves", !1);
+    l(this, "collapsed", !1);
+    l(this, "height", 200);
+    l(this, "isDragging", !1);
+    l(this, "manageBodyPadding", !0);
+    l(this, "isAutofit", !1);
+    l(this, "showEaseCurves", !1);
     // DOM references
-    o(this, "container");
-    o(this, "playBtn");
-    o(this, "loopBtn");
-    o(this, "speedBtn");
-    o(this, "timeDisplay");
-    o(this, "rulerInner");
-    o(this, "tracksScroll");
-    o(this, "playhead");
-    o(this, "scrubArea");
-    o(this, "resizeHandle");
-    o(this, "timelineSelect");
-    o(this, "isResizing", !1);
+    l(this, "container");
+    l(this, "playBtn");
+    l(this, "loopBtn");
+    l(this, "speedBtn");
+    l(this, "timeDisplay");
+    l(this, "rulerInner");
+    l(this, "tracksScroll");
+    l(this, "playhead");
+    l(this, "scrubArea");
+    l(this, "resizeHandle");
+    l(this, "timelineSelect");
+    l(this, "isResizing", !1);
     this.shadow = this.attachShadow({ mode: "open" });
   }
   connectedCallback() {
@@ -141,7 +148,7 @@ class E extends HTMLElement {
     this.detachTimeline(), this.clearBodyPadding();
   }
   setTimeline(t) {
-    this.detachTimeline(), this.timeline = t, I(), this.timelineData = q(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), requestAnimationFrame(() => this.applyAutofit());
+    this.detachTimeline(), this.timeline = t, R(), this.timelineData = I(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), requestAnimationFrame(() => this.applyAutofit());
   }
   updateTimelineSelector() {
     Promise.resolve().then(() => $).then(({ TimelineViewer: t }) => {
@@ -160,7 +167,7 @@ class E extends HTMLElement {
   }
   render() {
     this.shadow.innerHTML = `
-      <style>${R}</style>
+      <style>${j}</style>
       <div class="gtv-container ${this.collapsed ? "collapsed" : ""}" style="height: ${this.height}px;">
         <!-- Controls Bar -->
         <div class="gtv-controls">
@@ -527,22 +534,22 @@ class E extends HTMLElement {
 }
 customElements.define("gsap-timeline-viewer", E);
 const v = /* @__PURE__ */ new Map();
-let c = null, S = !0, j = 0, w = null;
-function V() {
-  const l = window.gsap;
-  !l || w || (w = l.timeline.bind(l), l.timeline = function(i) {
+let c = null, S = !0, V = 0, w = null;
+function N() {
+  const o = window.gsap;
+  !o || w || (w = o.timeline.bind(o), o.timeline = function(i) {
     const t = w(i);
     if (S) {
       let e;
-      i != null && i.id && typeof i.id == "string" ? e = i.id : e = `Timeline ${++j}`, v.has(e) || (v.set(e, t), c && (c.htmlElement.updateTimelineSelector(), v.size === 1 && c.select(e)));
+      i != null && i.id && typeof i.id == "string" ? e = i.id : e = `Timeline ${++V}`, v.has(e) || (v.set(e, t), c && (c.htmlElement.updateTimelineSelector(), v.size === 1 && c.select(e)));
     }
     return t;
   });
 }
 class T {
   constructor(i = {}) {
-    o(this, "element");
-    o(this, "currentTimelineName", null);
+    l(this, "element");
+    l(this, "currentTimelineName", null);
     this.element = document.createElement("gsap-timeline-viewer"), i.height && this.element.style.setProperty("--viewer-height", `${i.height}px`);
   }
   /**
@@ -550,7 +557,7 @@ class T {
    * Call this once - subsequent calls return the existing instance.
    */
   static create(i = {}) {
-    return c || (S = i.autoDetect !== !1, S && V(), c = new T(i), document.body.appendChild(c.element), setTimeout(() => {
+    return c || (S = i.autoDetect !== !1, S && N(), c = new T(i), document.body.appendChild(c.element), setTimeout(() => {
       if (c.element.updateTimelineSelector(), i.defaultTimeline && v.has(i.defaultTimeline))
         c.select(i.defaultTimeline);
       else if (v.size > 0) {

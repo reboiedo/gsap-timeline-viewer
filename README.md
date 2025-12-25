@@ -2,7 +2,7 @@
 
 A lightweight, framework-agnostic development tool for visualizing and debugging GSAP timelines. Inspect your animations with a visual timeline panel.
 
-![GSAP Timeline Viewer](https://raw.githubusercontent.com/reboiedo/gsap-timeline-viewer/main/screenshot.png)
+![GSAP Timeline Viewer](https://raw.githubusercontent.com/reboiedo/gsap-timeline-viewer/main/screenshot.webp)
 
 **~7 KB gzipped** | Works with React, Vue, Angular, Svelte, or vanilla JS
 
