@@ -1,4 +1,5 @@
 import { TimelineViewerElement } from './timeline-viewer';
+import { setGsapRef } from './utils/gsap-parser';
 
 export { TimelineViewerElement };
 
@@ -126,6 +127,7 @@ export class TimelineViewer {
     // Store gsap instance if provided (required for ES module imports)
     if (config.gsap) {
       gsapInstance = config.gsap;
+      setGsapRef(config.gsap);
     }
 
     // Enable/disable auto-detection (default: true)

@@ -73,6 +73,9 @@ export declare class TimelineViewerElement extends HTMLElement {
     private isResizing;
     constructor();
     connectedCallback(): void;
+    private loadSettings;
+    private saveSettings;
+    private applyLoadedSettings;
     disconnectedCallback(): void;
     setTimeline(timeline: gsap.core.Timeline): void;
     updateTimelineSelector(): void;

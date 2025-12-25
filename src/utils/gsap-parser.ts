@@ -27,6 +27,14 @@ export interface TimelineData {
 }
 
 let tweenCounter = 0;
+let gsapRef: typeof gsap | null = null;
+
+/**
+ * Set the gsap reference for ease sampling
+ */
+export function setGsapRef(gsapInstance: typeof gsap | null): void {
+  gsapRef = gsapInstance;
+}
 
 function getTargetLabel(targets: Element[]): string {
   if (!targets || targets.length === 0) return 'Unknown';
@@ -76,10 +84,12 @@ function linearEaseSamples(points = 20): number[] {
  * Tries GSAP's parseEase first, falls back to tween._ease, then linear.
  */
 function sampleEase(easeName: string, tween?: gsap.core.Tween, points = 20): number[] {
-  const gsapObj = (window as unknown as { gsap?: typeof gsap }).gsap;
+  // Use stored gsap ref first, then fall back to window.gsap
+  const gsapObj = gsapRef || (window as unknown as { gsap?: typeof gsap }).gsap;
 
   // First try parseEase with the ease name (works best for named eases)
-  let easeFunc = gsapObj?.parseEase?.(easeName);
+  // Trim whitespace from ease name in case of typos like "ease.out "
+  let easeFunc = gsapObj?.parseEase?.(easeName.trim());
 
   // If parseEase failed, try tween's internal _ease as fallback
   if (!easeFunc && tween) {

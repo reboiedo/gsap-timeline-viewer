@@ -3,6 +3,17 @@ import { formatTime } from './utils/time-formatter';
 import styles from './styles/styles.css?inline';
 
 const SPEED_OPTIONS = [0.25, 0.5, 1, 2, 4];
+const STORAGE_KEY = 'gsap-timeline-viewer-settings';
+
+interface StoredSettings {
+  height: number;
+  collapsed: boolean;
+  speedIndex: number;
+  isLooping: boolean;
+  isAutofit: boolean;
+  showEaseCurves: boolean;
+  selectedTimeline?: string;
+}
 
 export interface TimelineViewerOptions {
   timeline?: gsap.core.Timeline;
@@ -44,12 +55,67 @@ export class TimelineViewerElement extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
+    this.loadSettings();
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
     this.updateBodyPadding();
+    this.applyLoadedSettings();
+  }
+
+  private loadSettings(): void {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const settings: StoredSettings = JSON.parse(stored);
+        this.height = settings.height ?? 200;
+        this.collapsed = settings.collapsed ?? false;
+        this.speedIndex = settings.speedIndex ?? 2;
+        this.isLooping = settings.isLooping ?? false;
+        this.isAutofit = settings.isAutofit ?? false;
+        this.showEaseCurves = settings.showEaseCurves ?? false;
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  private saveSettings(): void {
+    try {
+      const settings: StoredSettings = {
+        height: this.height,
+        collapsed: this.collapsed,
+        speedIndex: this.speedIndex,
+        isLooping: this.isLooping,
+        isAutofit: this.isAutofit,
+        showEaseCurves: this.showEaseCurves,
+        selectedTimeline: this.timelineSelect?.value,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  private applyLoadedSettings(): void {
+    // Apply visual state from loaded settings
+    if (this.collapsed) {
+      this.container.classList.add('collapsed');
+    }
+    if (this.showEaseCurves) {
+      this.container.classList.add('show-ease-curves');
+      this.shadow.querySelector('[data-action="ease-curves"]')?.classList.add('active');
+    }
+    if (this.isAutofit) {
+      this.shadow.querySelector('[data-action="autofit"]')?.classList.add('active');
+    }
+    if (this.isLooping) {
+      this.loopBtn?.classList.add('active');
+    }
+    this.speedBtn.textContent = `${SPEED_OPTIONS[this.speedIndex]}x`;
+    this.container.style.height = `${this.height}px`;
   }
 
   disconnectedCallback() {
@@ -65,6 +131,10 @@ export class TimelineViewerElement extends HTMLElement {
 
     // Set up GSAP callbacks
     timeline.eventCallback('onUpdate', () => this.onTimelineUpdate());
+
+    // Apply saved settings to the timeline
+    timeline.timeScale(SPEED_OPTIONS[this.speedIndex]);
+    timeline.repeat(this.isLooping ? -1 : 0);
 
     this.renderTracks();
     this.updatePlayhead();
@@ -98,6 +168,7 @@ export class TimelineViewerElement extends HTMLElement {
 
   setSelectedTimeline(name: string) {
     this.timelineSelect.value = name;
+    this.saveSettings();
   }
 
   private detachTimeline() {
@@ -346,6 +417,7 @@ export class TimelineViewerElement extends HTMLElement {
     this.isResizing = false;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    this.saveSettings();
   }
 
   private updateBodyPadding() {
@@ -457,6 +529,7 @@ export class TimelineViewerElement extends HTMLElement {
     this.isLooping = !this.isLooping;
     this.timeline.repeat(this.isLooping ? -1 : 0);
     this.loopBtn.classList.toggle('active', this.isLooping);
+    this.saveSettings();
   }
 
   private cycleSpeed() {
@@ -465,6 +538,7 @@ export class TimelineViewerElement extends HTMLElement {
     const speed = SPEED_OPTIONS[this.speedIndex];
     this.timeline.timeScale(speed);
     this.speedBtn.textContent = `${speed}x`;
+    this.saveSettings();
   }
 
   private toggleCollapse() {
@@ -475,6 +549,7 @@ export class TimelineViewerElement extends HTMLElement {
       ? '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
       : '<svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
     this.updateBodyPadding();
+    this.saveSettings();
   }
 
   private toggleAutofit() {
@@ -484,6 +559,7 @@ export class TimelineViewerElement extends HTMLElement {
     if (this.isAutofit) {
       this.applyAutofit();
     }
+    this.saveSettings();
   }
 
   private toggleEaseCurves() {
@@ -491,6 +567,7 @@ export class TimelineViewerElement extends HTMLElement {
     const btn = this.shadow.querySelector('[data-action="ease-curves"]')!;
     btn.classList.toggle('active', this.showEaseCurves);
     this.container.classList.toggle('show-ease-curves', this.showEaseCurves);
+    this.saveSettings();
   }
 
   private applyAutofit() {
