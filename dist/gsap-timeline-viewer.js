@@ -1,14 +1,14 @@
-var A = Object.defineProperty;
-var H = (o, a, t) => a in o ? A(o, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[a] = t;
-var l = (o, a, t) => H(o, typeof a != "symbol" ? a + "" : a, t);
-let B = 0;
+var H = Object.defineProperty;
+var q = (o, s, t) => s in o ? H(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
+var l = (o, s, t) => q(o, typeof s != "symbol" ? s + "" : s, t);
+let D = 0;
 function w(o) {
   if (!o || o.length === 0) return "Unknown";
-  const a = o[0];
-  return a.id ? `#${a.id}` : a.classList && a.classList.length > 0 ? `.${a.classList[0]}` : a.tagName ? a.tagName.toLowerCase() : "element";
+  const s = o[0];
+  return s.id ? `#${s.id}` : s.classList && s.classList.length > 0 ? `.${s.classList[0]}` : s.tagName ? s.tagName.toLowerCase() : "element";
 }
-function q(o) {
-  const a = [
+function I(o) {
+  const s = [
     "ease",
     "duration",
     "delay",
@@ -31,30 +31,30 @@ function q(o) {
     "reversed",
     "startAt"
   ];
-  return Object.keys(o).filter((t) => !a.includes(t));
+  return Object.keys(o).filter((t) => !s.includes(t));
 }
-function I(o = 20) {
-  const a = [];
+function R(o = 20) {
+  const s = [];
   for (let t = 0; t <= o; t++)
-    a.push(t / o);
-  return a;
+    s.push(t / o);
+  return s;
 }
-function R(o, a, t = 20) {
+function j(o, s, t = 20) {
   var n;
   const e = window.gsap;
   let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o);
-  if (!i && a && (i = a._ease), !i)
-    return I(t);
-  const s = [];
-  for (let r = 0; r <= t; r++)
-    s.push(i(r / t));
-  return s;
-}
-function j(o) {
+  if (!i && s && (i = s._ease), !i)
+    return R(t);
   const a = [];
+  for (let r = 0; r <= t; r++)
+    a.push(i(r / t));
+  return a;
+}
+function N(o) {
+  const s = [];
   o.getChildren(!0, !0, !1).forEach((e, i) => {
     if (!("targets" in e)) return;
-    const s = e, n = s.targets(), r = s.vars || {}, d = q(r);
+    const a = e, n = a.targets(), r = a.vars || {}, d = I(r);
     let m = "";
     if (r.id && typeof r.id == "string")
       m = r.id;
@@ -68,17 +68,17 @@ function j(o) {
     let h, f;
     if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? h = r.stagger : typeof r.stagger == "object" && (h = r.stagger.each || 0), h)) {
       const b = u - h * (n.length - 1);
-      f = n.map((k, M) => {
-        const T = p + M * h;
+      f = n.map((k, A) => {
+        const P = p + A * h;
         return {
           targetLabel: w([k]),
-          startTime: T,
-          endTime: T + b
+          startTime: P,
+          endTime: P + b
         };
       });
     }
-    a.push({
-      id: `tween-${++B}`,
+    s.push({
+      id: `tween-${++D}`,
       label: m,
       startTime: p,
       endTime: p + u,
@@ -88,29 +88,29 @@ function j(o) {
       colorIndex: i % 6,
       hasStagger: !!r.stagger,
       ease: g,
-      easeSamples: R(g, s),
+      easeSamples: j(g, a),
       staggerValue: h,
       staggerChildren: f
     });
   });
-  for (let e = 1; e < a.length; e++) {
-    const i = a[e - 1], s = a[e], n = i.endTime - s.startTime;
-    Math.abs(n) > 1e-3 && (s.overlapWithPrev = Math.round(n * 1e3) / 1e3);
+  for (let e = 1; e < s.length; e++) {
+    const i = s[e - 1], a = s[e], n = i.endTime - a.startTime;
+    Math.abs(n) > 1e-3 && (a.overlapWithPrev = Math.round(n * 1e3) / 1e3);
   }
   return {
     duration: o.duration(),
-    tweens: a
+    tweens: s
   };
 }
-function N() {
-  B = 0;
+function V() {
+  D = 0;
 }
-function y(o, a = !0) {
+function y(o, s = !0) {
   const t = Math.abs(o);
-  return a ? t.toFixed(2) : t.toFixed(0);
+  return s ? t.toFixed(2) : t.toFixed(0);
 }
-const V = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", P = [0.25, 0.5, 1, 2, 4], z = 40;
-class D extends HTMLElement {
+const W = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", z = [0.25, 0.5, 1, 2, 4], L = 40;
+class M extends HTMLElement {
   constructor() {
     super();
     l(this, "shadow");
@@ -148,12 +148,12 @@ class D extends HTMLElement {
     this.detachTimeline(), this.clearBodyPadding();
   }
   setTimeline(t) {
-    this.detachTimeline(), this.timeline = t, N(), this.timelineData = j(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), requestAnimationFrame(() => this.applyAutofit());
+    this.detachTimeline(), this.timeline = t, V(), this.timelineData = N(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), requestAnimationFrame(() => this.applyAutofit());
   }
   updateTimelineSelector() {
-    Promise.resolve().then(() => E).then(({ TimelineViewer: t }) => {
+    Promise.resolve().then(() => B).then(({ TimelineViewer: t }) => {
       const e = t.getTimelines(), i = this.timelineSelect.value;
-      this.timelineSelect.innerHTML = "", e.forEach((s, n) => {
+      this.timelineSelect.innerHTML = "", e.forEach((a, n) => {
         const r = document.createElement("option");
         r.value = n, r.textContent = n, this.timelineSelect.appendChild(r);
       }), i && e.has(i) && (this.timelineSelect.value = i);
@@ -167,7 +167,7 @@ class D extends HTMLElement {
   }
   render() {
     this.shadow.innerHTML = `
-      <style>${V}</style>
+      <style>${W}</style>
       <div class="gtv-container ${this.collapsed ? "collapsed" : ""}" style="height: ${this.height}px;">
         <!-- Controls Bar -->
         <div class="gtv-controls">
@@ -272,15 +272,15 @@ class D extends HTMLElement {
       }
     }), this.timelineSelect.addEventListener("change", () => {
       const t = this.timelineSelect.value;
-      t && Promise.resolve().then(() => E).then(({ TimelineViewer: e }) => {
+      t && Promise.resolve().then(() => B).then(({ TimelineViewer: e }) => {
         var i;
         (i = e.getInstance()) == null || i.select(t);
       });
     }), this.shadow.addEventListener("click", (t) => {
       const i = t.target.closest(".gtv-track-bar");
       if (i) {
-        const s = i.closest(".gtv-track");
-        (s == null ? void 0 : s.dataset.expandable) === "true" && (t.stopPropagation(), s.classList.toggle("expanded"), requestAnimationFrame(() => this.applyAutofit()));
+        const a = i.closest(".gtv-track");
+        (a == null ? void 0 : a.dataset.expandable) === "true" && (t.stopPropagation(), a.classList.toggle("expanded"), requestAnimationFrame(() => this.applyAutofit()));
       }
     }), this.scrubArea.addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-ruler").addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-tracks-container").addEventListener("mousedown", (t) => {
       t.target.closest(".gtv-track-bar") || this.startScrub(t);
@@ -328,7 +328,7 @@ class D extends HTMLElement {
   }
   updateBodyPadding() {
     if (!this.manageBodyPadding) return;
-    const t = this.collapsed ? z : this.height;
+    const t = this.collapsed ? L : this.height;
     document.body.style.paddingBottom = `${t}px`;
   }
   clearBodyPadding() {
@@ -336,8 +336,8 @@ class D extends HTMLElement {
   }
   scrubToPosition(t) {
     if (!this.timeline || !this.timelineData) return;
-    const e = this.rulerInner.getBoundingClientRect(), s = Math.max(0, Math.min(t.clientX - e.left, e.width)) / e.width;
-    this.timeline.progress(s), this.timeline.pause(), this.updatePlayState();
+    const e = this.rulerInner.getBoundingClientRect(), a = Math.max(0, Math.min(t.clientX - e.left, e.width)) / e.width;
+    this.timeline.progress(a), this.timeline.pause(), this.updatePlayState();
   }
   togglePlay() {
     this.timeline && (this.timeline.paused() || this.timeline.progress() === 1 ? this.timeline.progress() === 1 ? this.timeline.restart() : this.timeline.play() : this.timeline.pause(), this.updatePlayState());
@@ -359,9 +359,9 @@ class D extends HTMLElement {
     if (!this.timeline || !this.timelineData) return;
     const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints();
     let i = 0;
-    for (const s of e)
-      if (s < t - 1e-3)
-        i = s;
+    for (const a of e)
+      if (a < t - 1e-3)
+        i = a;
       else
         break;
     this.timeline.time(i), this.timeline.pause(), this.updatePlayState();
@@ -370,9 +370,9 @@ class D extends HTMLElement {
     if (!this.timeline || !this.timelineData) return;
     const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints();
     let i = this.timelineData.duration;
-    for (const s of e)
-      if (s > t + 1e-3) {
-        i = s;
+    for (const a of e)
+      if (a > t + 1e-3) {
+        i = a;
         break;
       }
     this.timeline.time(i), this.timeline.pause(), this.updatePlayState();
@@ -382,8 +382,8 @@ class D extends HTMLElement {
   }
   cycleSpeed() {
     if (!this.timeline) return;
-    this.speedIndex = (this.speedIndex + 1) % P.length;
-    const t = P[this.speedIndex];
+    this.speedIndex = (this.speedIndex + 1) % z.length;
+    const t = z[this.speedIndex];
     this.timeline.timeScale(t), this.speedBtn.textContent = `${t}x`;
   }
   toggleCollapse() {
@@ -401,15 +401,15 @@ class D extends HTMLElement {
     if (!this.isAutofit || this.collapsed) return;
     const t = this.shadow.querySelectorAll(".gtv-track");
     let e = 0;
-    const i = 36, s = 30;
+    const i = 36, a = 30;
     t.forEach((p) => {
       if (e += i, p.classList.contains("expanded")) {
         const u = p.querySelectorAll(".gtv-stagger-child");
-        e += u.length * s;
+        e += u.length * a;
       }
     });
     const n = 24, r = 16, d = 100, m = window.innerHeight - 100;
-    this.height = Math.max(d, Math.min(z + n + e + r, m)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    this.height = Math.max(d, Math.min(L + n + e + r, m)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   updatePlayState() {
     if (!this.timeline) return;
@@ -427,14 +427,14 @@ class D extends HTMLElement {
   }
   updateTimeDisplay() {
     if (!this.timeline || !this.timelineData) return;
-    const t = this.timeline.time(), e = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), s = this.timeDisplay.querySelector(".gtv-time-total");
-    i.textContent = y(t), s.textContent = ` / ${y(e)}`;
+    const t = this.timeline.time(), e = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), a = this.timeDisplay.querySelector(".gtv-time-total");
+    i.textContent = y(t), a.textContent = ` / ${y(e)}`;
   }
   updateActiveTracks() {
     if (!this.timeline || !this.timelineData) return;
     const t = this.timeline.time();
-    this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, s) => {
-      const n = this.timelineData.tweens[s], r = t >= n.startTime && t <= n.endTime, d = i.dataset.color;
+    this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, a) => {
+      const n = this.timelineData.tweens[a], r = t >= n.startTime && t <= n.endTime, d = i.dataset.color;
       r ? i.style.background = `var(--gtv-track-${d}-active)` : i.style.background = `var(--gtv-track-${d})`;
     });
   }
@@ -442,25 +442,25 @@ class D extends HTMLElement {
     if (!this.timelineData) return;
     const { duration: t, tweens: e } = this.timelineData, i = this.shadow.querySelector(".gtv-empty");
     i.style.display = e.length > 0 ? "none" : "flex", this.renderRuler(t);
-    const s = this.renderGridLines(t), n = e.map((d) => this.renderTrack(d, t)).join(""), r = this.tracksScroll.querySelector(".gtv-scrub-area");
-    this.tracksScroll.innerHTML = s + n, this.tracksScroll.prepend(r), this.scrubArea = r;
+    const a = this.renderGridLines(t), n = e.map((d) => this.renderTrack(d, t)).join(""), r = this.tracksScroll.querySelector(".gtv-scrub-area");
+    this.tracksScroll.innerHTML = a + n, this.tracksScroll.prepend(r), this.scrubArea = r;
   }
   renderGridLines(t) {
     const e = [], i = this.calculateInterval(t);
-    for (let s = 0; s <= t; s += i) {
-      const n = s / t * 100;
+    for (let a = 0; a <= t; a += i) {
+      const n = a / t * 100;
       e.push(`<div class="gtv-grid-line" style="left: ${n}%;"></div>`);
     }
     return e.join("");
   }
   renderRuler(t) {
     const e = [], i = this.calculateInterval(t);
-    for (let s = 0; s <= t; s += i) {
-      const n = s / t * 100;
+    for (let a = 0; a <= t; a += i) {
+      const n = a / t * 100;
       e.push(`
         <div class="gtv-ruler-marker" style="left: ${n}%;">
           <div class="gtv-ruler-marker-line"></div>
-          <span class="gtv-ruler-marker-label">${y(s, !1)}s</span>
+          <span class="gtv-ruler-marker-label">${y(a, !1)}s</span>
         </div>
       `);
     }
@@ -472,21 +472,21 @@ class D extends HTMLElement {
   renderEaseCurve(t) {
     return t != null && t.length ? `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="${`M0,100 L${t.map((s, n) => {
-      const r = n / (t.length - 1) * 100, d = 100 - s * 100;
+        <path d="${`M0,100 L${t.map((a, n) => {
+      const r = n / (t.length - 1) * 100, d = 100 - a * 100;
       return `${r},${d}`;
     }).join(" L")} L100,100 Z`}" />
       </svg>
     ` : "";
   }
   getEaseClipPath(t) {
-    return t != null && t.length ? `polygon(0% 100%, ${t.map((i, s) => {
-      const n = s / (t.length - 1) * 100, r = 100 - i * 100;
+    return t != null && t.length ? `polygon(0% 100%, ${t.map((i, a) => {
+      const n = a / (t.length - 1) * 100, r = 100 - i * 100;
       return `${n}% ${r}%`;
     }).join(", ")}, 100% 100%)` : "";
   }
   renderTrack(t, e) {
-    const i = t.startTime / e * 100, s = t.duration / e * 100, n = t.colorIndex + 1, r = this.renderEaseCurve(t.easeSamples);
+    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, r = this.renderEaseCurve(t.easeSamples);
     let d = "";
     t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (d = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
     let m = "";
@@ -522,7 +522,7 @@ class D extends HTMLElement {
         <div class="gtv-track-bar"
              data-color="${n}"
              data-tween-id="${t.id}"
-             style="left: ${i}%; width: ${s}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
+             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
           ${r}
           <span class="gtv-track-label">${t.label}</span>
           ${d}
@@ -532,49 +532,51 @@ class D extends HTMLElement {
     `;
   }
 }
-customElements.define("gsap-timeline-viewer", D);
+customElements.define("gsap-timeline-viewer", M);
 const v = /* @__PURE__ */ new Map();
-let c = null, L = !0, W = 0;
-const $ = /* @__PURE__ */ new WeakSet();
+let c = null, $ = !0, U = 0, S = null;
+const C = /* @__PURE__ */ new WeakSet();
 let x = null;
-function U() {
-  return window.gsap || null;
+function F() {
+  if (S) return S;
+  const o = window;
+  return o.gsap || o.GSAP || null;
 }
-function C() {
-  const o = U();
+function E() {
+  const o = F();
   if (!(o != null && o.globalTimeline)) return;
   o.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
-    if ($.has(t)) return;
-    $.add(t);
+    if (C.has(t)) return;
+    C.add(t);
     const e = t.vars || {};
     let i;
-    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++W}`;
-    let s = i, n = 1;
-    for (; v.has(s); )
-      s = `${i} (${++n})`;
-    v.set(s, t), c && (c.htmlElement.updateTimelineSelector(), v.size === 1 && c.select(s));
+    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++U}`;
+    let a = i, n = 1;
+    for (; v.has(a); )
+      a = `${i} (${++n})`;
+    v.set(a, t), c && (c.htmlElement.updateTimelineSelector(), v.size === 1 && c.select(a));
   });
 }
-function F() {
-  x || (C(), x = setInterval(C, 500));
-}
 function _() {
+  x || (E(), x = setInterval(E, 500));
+}
+function G() {
   x && (clearInterval(x), x = null);
 }
-class S {
-  constructor(a = {}) {
+class T {
+  constructor(s = {}) {
     l(this, "element");
     l(this, "currentTimelineName", null);
-    this.element = document.createElement("gsap-timeline-viewer"), a.height && this.element.style.setProperty("--viewer-height", `${a.height}px`);
+    this.element = document.createElement("gsap-timeline-viewer"), s.height && this.element.style.setProperty("--viewer-height", `${s.height}px`);
   }
   /**
    * Create and attach the timeline viewer to the page.
    * Call this once - subsequent calls return the existing instance.
    */
-  static create(a = {}) {
-    return c || (L = a.autoDetect !== !1, c = new S(a), document.body.appendChild(c.element), L && F(), setTimeout(() => {
-      if (c.element.updateTimelineSelector(), a.defaultTimeline && v.has(a.defaultTimeline))
-        c.select(a.defaultTimeline);
+  static create(s = {}) {
+    return c || (s.gsap && (S = s.gsap), $ = s.autoDetect !== !1, c = new T(s), document.body.appendChild(c.element), $ && _(), setTimeout(() => {
+      if (c.element.updateTimelineSelector(), s.defaultTimeline && v.has(s.defaultTimeline))
+        c.select(s.defaultTimeline);
       else if (v.size > 0) {
         const t = v.keys().next().value;
         t && c.select(t);
@@ -584,14 +586,14 @@ class S {
   /**
    * Register a timeline with a name so it appears in the dropdown.
    */
-  static register(a, t) {
-    v.set(a, t), c && (c.element.updateTimelineSelector(), v.size === 1 && c.select(a));
+  static register(s, t) {
+    v.set(s, t), c && (c.element.updateTimelineSelector(), v.size === 1 && c.select(s));
   }
   /**
    * Unregister a timeline.
    */
-  static unregister(a) {
-    v.delete(a), c && c.element.updateTimelineSelector();
+  static unregister(s) {
+    v.delete(s), c && c.element.updateTimelineSelector();
   }
   /**
    * Get all registered timelines.
@@ -608,9 +610,9 @@ class S {
   /**
    * Select a timeline by name.
    */
-  select(a) {
-    const t = v.get(a);
-    t && (this.currentTimelineName = a, this.element.setTimeline(t), this.element.setSelectedTimeline(a));
+  select(s) {
+    const t = v.get(s);
+    t && (this.currentTimelineName = s, this.element.setTimeline(t), this.element.setSelectedTimeline(s));
   }
   /**
    * Get current timeline name.
@@ -622,18 +624,18 @@ class S {
    * Remove the viewer from the page.
    */
   destroy() {
-    _(), this.element.remove(), c = null;
+    G(), this.element.remove(), c = null;
   }
   get htmlElement() {
     return this.element;
   }
 }
-const E = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const B = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  TimelineViewer: S,
-  TimelineViewerElement: D
+  TimelineViewer: T,
+  TimelineViewerElement: M
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  S as TimelineViewer,
-  D as TimelineViewerElement
+  T as TimelineViewer,
+  M as TimelineViewerElement
 };

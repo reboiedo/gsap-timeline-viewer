@@ -7,6 +7,7 @@ export interface TimelineViewerConfig {
   collapsed?: boolean;
   defaultTimeline?: string; // Name of timeline to select by default
   autoDetect?: boolean; // Auto-detect timelines (default: true)
+  gsap?: typeof gsap; // Pass gsap instance if using ES modules
 }
 
 // Registry of named timelines
@@ -14,16 +15,22 @@ const timelineRegistry = new Map<string, gsap.core.Timeline>();
 let viewerInstance: TimelineViewer | null = null;
 let autoDetectEnabled = true;
 let timelineCounter = 0;
+let gsapInstance: typeof gsap | null = null;
 
 // Track timelines we've already seen to avoid duplicates
 const seenTimelines = new WeakSet<gsap.core.Timeline>();
 let scanInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Get gsap object from window (works with both global and module imports)
+ * Get gsap object - checks passed instance, window.gsap, or common globals
  */
 function getGsap(): typeof gsap | null {
-  return (window as unknown as { gsap?: typeof gsap }).gsap || null;
+  // First check if gsap was passed to create()
+  if (gsapInstance) return gsapInstance;
+
+  // Then check window.gsap
+  const win = window as unknown as { gsap?: typeof gsap; GSAP?: typeof gsap };
+  return win.gsap || win.GSAP || null;
 }
 
 /**
@@ -114,6 +121,11 @@ export class TimelineViewer {
   static create(config: TimelineViewerConfig = {}): TimelineViewer {
     if (viewerInstance) {
       return viewerInstance;
+    }
+
+    // Store gsap instance if provided (required for ES module imports)
+    if (config.gsap) {
+      gsapInstance = config.gsap;
     }
 
     // Enable/disable auto-detection (default: true)

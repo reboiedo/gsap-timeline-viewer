@@ -43,6 +43,7 @@ export declare interface TimelineViewerConfig {
     collapsed?: boolean;
     defaultTimeline?: string;
     autoDetect?: boolean;
+    gsap?: typeof gsap;
 }
 
 export declare class TimelineViewerElement extends HTMLElement {
