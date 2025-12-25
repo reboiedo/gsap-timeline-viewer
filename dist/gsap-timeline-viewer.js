@@ -1,16 +1,16 @@
-var q = Object.defineProperty;
-var R = (o, s, t) => s in o ? q(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
-var l = (o, s, t) => R(o, typeof s != "symbol" ? s + "" : s, t);
-let D = 0, M = null;
-function N(o) {
-  M = o;
+var H = Object.defineProperty;
+var R = (l, s, t) => s in l ? H(l, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[s] = t;
+var o = (l, s, t) => R(l, typeof s != "symbol" ? s + "" : s, t);
+let B = 0, M = null;
+function N(l) {
+  M = l;
 }
-function S(o) {
-  if (!o || o.length === 0) return "Unknown";
-  const s = o[0];
+function w(l) {
+  if (!l || l.length === 0) return "Unknown";
+  const s = l[0];
   return s.id ? `#${s.id}` : s.classList && s.classList.length > 0 ? `.${s.classList[0]}` : s.tagName ? s.tagName.toLowerCase() : "element";
 }
-function j(o) {
+function j(l) {
   const s = [
     "ease",
     "duration",
@@ -34,18 +34,18 @@ function j(o) {
     "reversed",
     "startAt"
   ];
-  return Object.keys(o).filter((t) => !s.includes(t));
+  return Object.keys(l).filter((t) => !s.includes(t));
 }
-function V(o = 20) {
+function V(l = 20) {
   const s = [];
-  for (let t = 0; t <= o; t++)
-    s.push(t / o);
+  for (let t = 0; t <= l; t++)
+    s.push(t / l);
   return s;
 }
-function W(o, s, t = 20) {
+function G(l, s, t = 20) {
   var n;
   const e = M || window.gsap;
-  let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o.trim());
+  let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, l.trim());
   if (!i && s && (i = s._ease), !i)
     return V(t);
   const a = [];
@@ -53,46 +53,46 @@ function W(o, s, t = 20) {
     a.push(i(r / t));
   return a;
 }
-function G(o) {
+function W(l) {
   const s = [];
-  o.getChildren(!0, !0, !1).forEach((e, i) => {
+  l.getChildren(!0, !0, !1).forEach((e, i) => {
     if (!("targets" in e)) return;
-    const a = e, n = a.targets(), r = a.vars || {}, d = j(r);
-    let m = "";
+    const a = e, n = a.targets(), r = a.vars || {}, c = j(r);
+    let v = "";
     if (r.id && typeof r.id == "string")
-      m = r.id;
+      v = r.id;
     else {
-      const b = S(n), k = d.slice(0, 2).join(", ");
-      m = k ? `${b} (${k})` : b;
+      const y = w(n), k = c.slice(0, 2).join(", ");
+      v = k ? `${y} (${k})` : y;
     }
-    const v = e.startTime(), u = e.duration();
-    let h = "power1.out";
-    r.ease && (h = typeof r.ease == "string" ? r.ease : "custom");
-    let g, f;
-    if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? g = r.stagger : typeof r.stagger == "object" && (g = r.stagger.each || 0), g)) {
-      const b = u - g * (n.length - 1);
-      f = n.map((k, H) => {
-        const P = v + H * g;
+    const g = e.startTime(), h = e.duration();
+    let p = "power1.out";
+    r.ease && (p = typeof r.ease == "string" ? r.ease : "custom");
+    let u, f;
+    if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? u = r.stagger : typeof r.stagger == "object" && (u = r.stagger.each || 0), u)) {
+      const y = h - u * (n.length - 1);
+      f = n.map((k, I) => {
+        const L = g + I * u;
         return {
-          targetLabel: S([k]),
-          startTime: P,
-          endTime: P + b
+          targetLabel: w([k]),
+          startTime: L,
+          endTime: L + y
         };
       });
     }
     s.push({
-      id: `tween-${++D}`,
-      label: m,
-      startTime: v,
-      endTime: v + u,
-      duration: u,
-      targets: S(n),
-      properties: d,
+      id: `tween-${++B}`,
+      label: v,
+      startTime: g,
+      endTime: g + h,
+      duration: h,
+      targets: w(n),
+      properties: c,
       colorIndex: i % 6,
       hasStagger: !!r.stagger,
-      ease: h,
-      easeSamples: W(h, a),
-      staggerValue: g,
+      ease: p,
+      easeSamples: G(p, a),
+      staggerValue: u,
       staggerChildren: f
     });
   });
@@ -101,47 +101,52 @@ function G(o) {
     Math.abs(n) > 1e-3 && (a.overlapWithPrev = Math.round(n * 1e3) / 1e3);
   }
   return {
-    duration: o.duration(),
+    duration: l.duration(),
     tweens: s
   };
 }
-function U() {
-  D = 0;
+function _() {
+  B = 0;
 }
-function y(o, s = !0) {
-  const t = Math.abs(o);
+function b(l, s = !0) {
+  const t = Math.abs(l);
   return s ? t.toFixed(2) : t.toFixed(0);
 }
-const _ = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", w = [0.25, 0.5, 1, 2, 4], z = "gsap-timeline-viewer-settings", $ = 40;
-class I extends HTMLElement {
+const O = ":host{--gtv-bg: #1a1a1a;--gtv-bg-secondary: #252525;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-ruler-bg: #1f1f1f;--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg-secondary);border-bottom:1px solid var(--gtv-border);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);border-bottom:1px solid var(--gtv-border);padding:2px var(--gtv-timeline-padding)}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#222;border-radius:6px;overflow:hidden}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:#1a1a1a;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#333;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{transform:translate(-100%);border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:20}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff1a}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-ruler-bg);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:center}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-secondary);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", S = [0.25, 0.5, 1, 2, 4], E = "gsap-timeline-viewer-settings", U = 40, F = 16, z = U + F;
+class q extends HTMLElement {
   constructor() {
     super();
-    l(this, "shadow");
-    l(this, "timeline", null);
-    l(this, "timelineData", null);
-    l(this, "isPlaying", !1);
-    l(this, "isLooping", !1);
-    l(this, "speedIndex", 2);
+    o(this, "shadow");
+    o(this, "timeline", null);
+    o(this, "timelineData", null);
+    o(this, "isPlaying", !1);
+    o(this, "isLooping", !1);
+    o(this, "speedIndex", 2);
     // 1x
-    l(this, "collapsed", !1);
-    l(this, "height", 200);
-    l(this, "isDragging", !1);
-    l(this, "manageBodyPadding", !0);
-    l(this, "isAutofit", !1);
-    l(this, "showEaseCurves", !1);
+    o(this, "collapsed", !1);
+    o(this, "height", 200);
+    o(this, "isDragging", !1);
+    o(this, "manageBodyPadding", !0);
+    o(this, "isAutofit", !1);
+    o(this, "showEaseCurves", !1);
+    o(this, "playrangeStart", 0);
+    // 0-1 progress
+    o(this, "playrangeEnd", 1);
+    // 0-1 progress
+    o(this, "draggingPlayrange", null);
     // DOM references
-    l(this, "container");
-    l(this, "playBtn");
-    l(this, "loopBtn");
-    l(this, "speedBtn");
-    l(this, "timeDisplay");
-    l(this, "rulerInner");
-    l(this, "tracksScroll");
-    l(this, "playhead");
-    l(this, "scrubArea");
-    l(this, "resizeHandle");
-    l(this, "timelineSelect");
-    l(this, "isResizing", !1);
+    o(this, "container");
+    o(this, "playBtn");
+    o(this, "loopBtn");
+    o(this, "speedBtn");
+    o(this, "timeDisplay");
+    o(this, "rulerInner");
+    o(this, "tracksScroll");
+    o(this, "playhead");
+    o(this, "scrubArea");
+    o(this, "resizeHandle");
+    o(this, "timelineSelect");
+    o(this, "isResizing", !1);
     this.shadow = this.attachShadow({ mode: "open" }), this.loadSettings();
   }
   connectedCallback() {
@@ -149,10 +154,10 @@ class I extends HTMLElement {
   }
   loadSettings() {
     try {
-      const t = localStorage.getItem(z);
+      const t = localStorage.getItem(E);
       if (t) {
         const e = JSON.parse(t);
-        this.height = e.height ?? 200, this.collapsed = e.collapsed ?? !1, this.speedIndex = e.speedIndex ?? 2, this.isLooping = e.isLooping ?? !1, this.isAutofit = e.isAutofit ?? !1, this.showEaseCurves = e.showEaseCurves ?? !1;
+        this.height = e.height ?? 200, this.collapsed = e.collapsed ?? !1, this.speedIndex = e.speedIndex ?? 2, this.isLooping = e.isLooping ?? !1, this.isAutofit = e.isAutofit ?? !1, this.showEaseCurves = e.showEaseCurves ?? !1, this.playrangeStart = e.playrangeStart ?? 0, this.playrangeEnd = e.playrangeEnd ?? 1;
       }
     } catch {
     }
@@ -167,24 +172,26 @@ class I extends HTMLElement {
         isLooping: this.isLooping,
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
-        selectedTimeline: (t = this.timelineSelect) == null ? void 0 : t.value
+        selectedTimeline: (t = this.timelineSelect) == null ? void 0 : t.value,
+        playrangeStart: this.playrangeStart,
+        playrangeEnd: this.playrangeEnd
       };
-      localStorage.setItem(z, JSON.stringify(e));
+      localStorage.setItem(E, JSON.stringify(e));
     } catch {
     }
   }
   applyLoadedSettings() {
     var t, e, i;
-    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (t = this.shadow.querySelector('[data-action="ease-curves"]')) == null || t.classList.add("active")), this.isAutofit && ((e = this.shadow.querySelector('[data-action="autofit"]')) == null || e.classList.add("active")), this.isLooping && ((i = this.loopBtn) == null || i.classList.add("active")), this.speedBtn.textContent = `${w[this.speedIndex]}x`, this.container.style.height = `${this.height}px`;
+    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (t = this.shadow.querySelector('[data-action="ease-curves"]')) == null || t.classList.add("active")), this.isAutofit && ((e = this.shadow.querySelector('[data-action="autofit"]')) == null || e.classList.add("active")), this.isLooping && ((i = this.loopBtn) == null || i.classList.add("active")), this.speedBtn.textContent = `${S[this.speedIndex]}x`, this.container.style.height = `${this.height}px`, this.updatePlayrangeDisplay();
   }
   disconnectedCallback() {
     this.detachTimeline(), this.clearBodyPadding();
   }
   setTimeline(t) {
-    this.detachTimeline(), this.timeline = t, U(), this.timelineData = G(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), t.timeScale(w[this.speedIndex]), t.repeat(this.isLooping ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), requestAnimationFrame(() => this.applyAutofit());
+    this.detachTimeline(), this.timeline = t, _(), this.timelineData = W(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), t.timeScale(S[this.speedIndex]), t.repeat(this.isLooping ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), this.updatePlayrangeDisplay(), requestAnimationFrame(() => this.applyAutofit());
   }
   updateTimelineSelector() {
-    Promise.resolve().then(() => B).then(({ TimelineViewer: t }) => {
+    Promise.resolve().then(() => A).then(({ TimelineViewer: t }) => {
       const e = t.getTimelines(), i = this.timelineSelect.value;
       this.timelineSelect.innerHTML = "", e.forEach((a, n) => {
         const r = document.createElement("option");
@@ -200,7 +207,7 @@ class I extends HTMLElement {
   }
   render() {
     this.shadow.innerHTML = `
-      <style>${_}</style>
+      <style>${O}</style>
       <div class="gtv-container ${this.collapsed ? "collapsed" : ""}" style="height: ${this.height}px;">
         <!-- Controls Bar -->
         <div class="gtv-controls">
@@ -244,7 +251,18 @@ class I extends HTMLElement {
           </div>
         </div>
 
-        <!-- Timeline Area -->
+        <!-- Playrange Bar (always visible) -->
+        <div class="gtv-playrange-bar">
+          <div class="gtv-playrange-track">
+            <div class="gtv-playrange-inactive-left"></div>
+            <div class="gtv-playrange-active"></div>
+            <div class="gtv-playrange-inactive-right"></div>
+          </div>
+          <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
+          <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
+        </div>
+
+        <!-- Timeline Area (hidden when collapsed) -->
         <div class="gtv-timeline-area">
           <!-- Resize Handle -->
           <div class="gtv-resize-handle"></div>
@@ -303,9 +321,10 @@ class I extends HTMLElement {
           this.toggleEaseCurves();
           break;
       }
+      i.blur();
     }), this.timelineSelect.addEventListener("change", () => {
       const t = this.timelineSelect.value;
-      t && Promise.resolve().then(() => B).then(({ TimelineViewer: e }) => {
+      t && Promise.resolve().then(() => A).then(({ TimelineViewer: e }) => {
         var i;
         (i = e.getInstance()) == null || i.select(t);
       });
@@ -318,10 +337,12 @@ class I extends HTMLElement {
     }), this.scrubArea.addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-ruler").addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-tracks-container").addEventListener("mousedown", (t) => {
       t.target.closest(".gtv-track-bar") || this.startScrub(t);
     }), document.addEventListener("mousemove", (t) => {
-      this.onScrub(t), this.onResize(t);
+      this.onScrub(t), this.onResize(t), this.onPlayrangeDrag(t);
     }), document.addEventListener("mouseup", () => {
-      this.endScrub(), this.endResize();
-    }), this.resizeHandle.addEventListener("mousedown", (t) => this.startResize(t)), document.addEventListener("keydown", (t) => {
+      this.endScrub(), this.endResize(), this.endPlayrangeDrag();
+    }), this.resizeHandle.addEventListener("mousedown", (t) => this.startResize(t)), this.shadow.querySelectorAll(".gtv-playrange-handle").forEach((t) => {
+      t.addEventListener("mousedown", (e) => this.startPlayrangeDrag(e));
+    }), document.addEventListener("keydown", (t) => {
       if (t.target === document.body)
         switch (t.code) {
           case "Space":
@@ -359,9 +380,31 @@ class I extends HTMLElement {
   endResize() {
     this.isResizing && (this.isResizing = !1, document.body.style.cursor = "", document.body.style.userSelect = "", this.saveSettings());
   }
+  startPlayrangeDrag(t) {
+    t.preventDefault(), t.stopPropagation();
+    const e = t.target.closest(".gtv-playrange-handle");
+    e && (this.draggingPlayrange = e.dataset.handle, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none");
+  }
+  onPlayrangeDrag(t) {
+    if (!this.draggingPlayrange) return;
+    const e = this.shadow.querySelector(".gtv-playrange-track");
+    if (!e) return;
+    const i = e.getBoundingClientRect(), n = Math.max(0, Math.min(t.clientX - i.left, i.width)) / i.width;
+    this.draggingPlayrange === "start" ? this.playrangeStart = Math.min(n, this.playrangeEnd - 0.01) : this.playrangeEnd = Math.max(n, this.playrangeStart + 0.01), this.updatePlayrangeDisplay();
+  }
+  endPlayrangeDrag() {
+    this.draggingPlayrange && (this.draggingPlayrange = null, document.body.style.cursor = "", document.body.style.userSelect = "", this.saveSettings());
+  }
+  updatePlayrangeDisplay() {
+    const t = this.shadow.querySelector(".gtv-playrange-track"), e = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), a = this.shadow.querySelector(".gtv-playrange-active"), n = this.shadow.querySelector(".gtv-playrange-inactive-left"), r = this.shadow.querySelector(".gtv-playrange-inactive-right");
+    if (t && e && i && a && n && r) {
+      const c = this.playrangeStart * 100, v = this.playrangeEnd * 100, g = t.offsetLeft, h = t.offsetWidth;
+      e.style.left = `${g + this.playrangeStart * h}px`, i.style.left = `${g + this.playrangeEnd * h}px`, a.style.left = `${c}%`, a.style.width = `${v - c}%`, n.style.width = `${c}%`, r.style.width = `${100 - v}%`;
+    }
+  }
   updateBodyPadding() {
     if (!this.manageBodyPadding) return;
-    const t = this.collapsed ? $ : this.height;
+    const t = this.collapsed ? z : this.height;
     document.body.style.paddingBottom = `${t}px`;
   }
   clearBodyPadding() {
@@ -390,33 +433,33 @@ class I extends HTMLElement {
   }
   jumpToPrevPoint() {
     if (!this.timeline || !this.timelineData) return;
-    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints();
-    let i = 0;
-    for (const a of e)
-      if (a < t - 1e-3)
-        i = a;
-      else
+    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints(), i = this.playrangeStart * this.timelineData.duration;
+    let a = i;
+    for (const n of e)
+      if (n < t - 1e-3 && n >= i)
+        a = n;
+      else if (n >= t)
         break;
-    this.timeline.time(i), this.timeline.pause(), this.updatePlayState();
+    this.timeline.time(Math.max(a, i)), this.timeline.pause(), this.updatePlayState();
   }
   jumpToNextPoint() {
     if (!this.timeline || !this.timelineData) return;
-    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints();
-    let i = this.timelineData.duration;
-    for (const a of e)
-      if (a > t + 1e-3) {
-        i = a;
+    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints(), i = this.playrangeEnd * this.timelineData.duration;
+    let a = i;
+    for (const n of e)
+      if (n > t + 1e-3 && n <= i) {
+        a = n;
         break;
       }
-    this.timeline.time(i), this.timeline.pause(), this.updatePlayState();
+    this.timeline.time(Math.min(a, i)), this.timeline.pause(), this.updatePlayState();
   }
   toggleLoop() {
     this.timeline && (this.isLooping = !this.isLooping, this.timeline.repeat(this.isLooping ? -1 : 0), this.loopBtn.classList.toggle("active", this.isLooping), this.saveSettings());
   }
   cycleSpeed() {
     if (!this.timeline) return;
-    this.speedIndex = (this.speedIndex + 1) % w.length;
-    const t = w[this.speedIndex];
+    this.speedIndex = (this.speedIndex + 1) % S.length;
+    const t = S[this.speedIndex];
     this.timeline.timeScale(t), this.speedBtn.textContent = `${t}x`, this.saveSettings();
   }
   toggleCollapse() {
@@ -435,14 +478,14 @@ class I extends HTMLElement {
     const t = this.shadow.querySelectorAll(".gtv-track");
     let e = 0;
     const i = 36, a = 30;
-    t.forEach((v) => {
-      if (e += i, v.classList.contains("expanded")) {
-        const u = v.querySelectorAll(".gtv-stagger-child");
-        e += u.length * a;
+    t.forEach((g) => {
+      if (e += i, g.classList.contains("expanded")) {
+        const h = g.querySelectorAll(".gtv-stagger-child");
+        e += h.length * a;
       }
     });
-    const n = 24, r = 16, d = 100, m = window.innerHeight - 100;
-    this.height = Math.max(d, Math.min($ + n + e + r, m)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    const n = 24, r = 16, c = 100, v = window.innerHeight - 100;
+    this.height = Math.max(c, Math.min(z + n + e + r, v)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   updatePlayState() {
     if (!this.timeline) return;
@@ -451,7 +494,12 @@ class I extends HTMLElement {
     t.style.display = this.isPlaying ? "none" : "block", e.style.display = this.isPlaying ? "block" : "none";
   }
   onTimelineUpdate() {
-    this.updatePlayhead(), this.updateTimeDisplay(), this.updateActiveTracks(), this.updatePlayState();
+    this.updatePlayhead(), this.updateTimeDisplay(), this.updateActiveTracks(), this.updatePlayState(), this.checkPlayrangeConstraint();
+  }
+  checkPlayrangeConstraint() {
+    if (!this.timeline || this.playrangeStart === 0 && this.playrangeEnd === 1) return;
+    const t = this.timeline.progress();
+    t >= this.playrangeEnd ? this.isLooping ? this.timeline.progress(this.playrangeStart) : (this.timeline.progress(this.playrangeEnd), this.timeline.pause(), this.updatePlayState()) : t < this.playrangeStart && this.timeline.progress(this.playrangeStart);
   }
   updatePlayhead() {
     if (!this.timeline || !this.timelineData) return;
@@ -461,21 +509,21 @@ class I extends HTMLElement {
   updateTimeDisplay() {
     if (!this.timeline || !this.timelineData) return;
     const t = this.timeline.time(), e = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), a = this.timeDisplay.querySelector(".gtv-time-total");
-    i.textContent = y(t), a.textContent = ` / ${y(e)}`;
+    i.textContent = b(t), a.textContent = ` / ${b(e)}`;
   }
   updateActiveTracks() {
     if (!this.timeline || !this.timelineData) return;
     const t = this.timeline.time();
     this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, a) => {
-      const n = this.timelineData.tweens[a], r = t >= n.startTime && t <= n.endTime, d = i.dataset.color;
-      r ? i.style.background = `var(--gtv-track-${d}-active)` : i.style.background = `var(--gtv-track-${d})`;
+      const n = this.timelineData.tweens[a], r = t >= n.startTime && t <= n.endTime, c = i.dataset.color;
+      r ? i.style.background = `var(--gtv-track-${c}-active)` : i.style.background = `var(--gtv-track-${c})`;
     });
   }
   renderTracks() {
     if (!this.timelineData) return;
     const { duration: t, tweens: e } = this.timelineData, i = this.shadow.querySelector(".gtv-empty");
     i.style.display = e.length > 0 ? "none" : "flex", this.renderRuler(t);
-    const a = this.renderGridLines(t), n = e.map((d) => this.renderTrack(d, t)).join(""), r = this.tracksScroll.querySelector(".gtv-scrub-area");
+    const a = this.renderGridLines(t), n = e.map((c) => this.renderTrack(c, t)).join(""), r = this.tracksScroll.querySelector(".gtv-scrub-area");
     this.tracksScroll.innerHTML = a + n, this.tracksScroll.prepend(r), this.scrubArea = r;
   }
   renderGridLines(t) {
@@ -493,7 +541,7 @@ class I extends HTMLElement {
       e.push(`
         <div class="gtv-ruler-marker" style="left: ${n}%;">
           <div class="gtv-ruler-marker-line"></div>
-          <span class="gtv-ruler-marker-label">${y(a, !1)}s</span>
+          <span class="gtv-ruler-marker-label">${b(a, !1)}s</span>
         </div>
       `);
     }
@@ -506,8 +554,8 @@ class I extends HTMLElement {
     return t != null && t.length ? `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path d="${`M0,100 L${t.map((a, n) => {
-      const r = n / (t.length - 1) * 100, d = 100 - a * 100;
-      return `${r},${d}`;
+      const r = n / (t.length - 1) * 100, c = 100 - a * 100;
+      return `${r},${c}`;
     }).join(" L")} L100,100 Z`}" />
       </svg>
     ` : "";
@@ -520,86 +568,86 @@ class I extends HTMLElement {
   }
   renderTrack(t, e) {
     const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, r = this.renderEaseCurve(t.easeSamples);
-    let d = "";
-    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (d = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
-    let m = "";
+    let c = "";
+    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (c = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
+    let v = "";
     if (t.staggerChildren && t.staggerChildren.length > 0) {
-      const u = t.staggerChildren.map((h) => {
-        const g = h.startTime / e * 100, f = (h.endTime - h.startTime) / e * 100;
+      const h = t.staggerChildren.map((p) => {
+        const u = p.startTime / e * 100, f = (p.endTime - p.startTime) / e * 100;
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${g}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
+                 style="left: ${u}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
               ${r}
-              <span class="gtv-track-label">${h.targetLabel}</span>
+              <span class="gtv-track-label">${p.targetLabel}</span>
             </div>
           </div>
         `;
       }).join("");
-      m = `<div class="gtv-stagger-children" data-for="${t.id}">${u}</div>`;
+      v = `<div class="gtv-stagger-children" data-for="${t.id}">${h}</div>`;
     }
-    let v = "";
+    let g = "";
     if (t.overlapWithPrev !== void 0) {
-      const u = t.overlapWithPrev > 0, h = Math.abs(t.overlapWithPrev) / e * 100, g = u ? `-${y(t.overlapWithPrev)}s` : `+${y(Math.abs(t.overlapWithPrev))}s`, f = this.getEaseClipPath(t.easeSamples);
-      u ? v = `
-          <div class="gtv-overlap-region" style="left: ${i}%; width: ${h}%; --ease-clip: ${f};"></div>
-          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${g}</span>
-        ` : v = `
-          <div class="gtv-gap-connector" style="left: ${i - h}%; width: ${h}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${g}</span>
+      const h = t.overlapWithPrev > 0, p = Math.abs(t.overlapWithPrev) / e * 100, u = h ? `-${b(t.overlapWithPrev)}s` : `+${b(Math.abs(t.overlapWithPrev))}s`, f = this.getEaseClipPath(t.easeSamples);
+      h ? g = `
+          <div class="gtv-overlap-region" style="left: ${i}%; width: ${p}%; --ease-clip: ${f};"></div>
+          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${u}</span>
+        ` : g = `
+          <div class="gtv-gap-connector" style="left: ${i - p}%; width: ${p}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${u}</span>
         `;
     }
     return `
       <div class="gtv-track" data-expandable="${t.hasStagger && t.staggerChildren ? "true" : "false"}">
-        ${v}
+        ${g}
         <div class="gtv-track-bar"
              data-color="${n}"
              data-tween-id="${t.id}"
              style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
           ${r}
           <span class="gtv-track-label">${t.label}</span>
-          ${d}
+          ${c}
         </div>
-        ${m}
+        ${v}
       </div>
     `;
   }
 }
-customElements.define("gsap-timeline-viewer", I);
-const p = /* @__PURE__ */ new Map();
-let c = null, C = !0, F = 0, T = null;
-const E = /* @__PURE__ */ new WeakSet();
+customElements.define("gsap-timeline-viewer", q);
+const m = /* @__PURE__ */ new Map();
+let d = null, $ = !0, K = 0, P = null;
+const C = /* @__PURE__ */ new WeakSet();
 let x = null;
-function O() {
-  if (T) return T;
-  const o = window;
-  return o.gsap || o.GSAP || null;
+function J() {
+  if (P) return P;
+  const l = window;
+  return l.gsap || l.GSAP || null;
 }
-function A() {
-  const o = O();
-  if (!(o != null && o.globalTimeline)) return;
-  o.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
-    if (E.has(t)) return;
-    E.add(t);
+function D() {
+  const l = J();
+  if (!(l != null && l.globalTimeline)) return;
+  l.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
+    if (C.has(t)) return;
+    C.add(t);
     const e = t.vars || {};
     let i;
-    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++F}`;
+    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++K}`;
     let a = i, n = 1;
-    for (; p.has(a); )
+    for (; m.has(a); )
       a = `${i} (${++n})`;
-    p.set(a, t), c && (c.htmlElement.updateTimelineSelector(), p.size === 1 && c.select(a));
+    m.set(a, t), d && (d.htmlElement.updateTimelineSelector(), m.size === 1 && d.select(a));
   });
 }
-function K() {
-  x || (A(), x = setInterval(A, 500));
+function Y() {
+  x || (D(), x = setInterval(D, 500));
 }
-function J() {
+function X() {
   x && (clearInterval(x), x = null);
 }
-class L {
+class T {
   constructor(s = {}) {
-    l(this, "element");
-    l(this, "currentTimelineName", null);
+    o(this, "element");
+    o(this, "currentTimelineName", null);
     this.element = document.createElement("gsap-timeline-viewer"), s.height && this.element.style.setProperty("--viewer-height", `${s.height}px`);
   }
   /**
@@ -607,44 +655,44 @@ class L {
    * Call this once - subsequent calls return the existing instance.
    */
   static create(s = {}) {
-    return c || (s.gsap && (T = s.gsap, N(s.gsap)), C = s.autoDetect !== !1, c = new L(s), document.body.appendChild(c.element), C && K(), setTimeout(() => {
-      if (c.element.updateTimelineSelector(), s.defaultTimeline && p.has(s.defaultTimeline))
-        c.select(s.defaultTimeline);
-      else if (p.size > 0) {
-        const t = p.keys().next().value;
-        t && c.select(t);
+    return d || (s.gsap && (P = s.gsap, N(s.gsap)), $ = s.autoDetect !== !1, d = new T(s), document.body.appendChild(d.element), $ && Y(), setTimeout(() => {
+      if (d.element.updateTimelineSelector(), s.defaultTimeline && m.has(s.defaultTimeline))
+        d.select(s.defaultTimeline);
+      else if (m.size > 0) {
+        const t = m.keys().next().value;
+        t && d.select(t);
       }
-    }, 0), c);
+    }, 0), d);
   }
   /**
    * Register a timeline with a name so it appears in the dropdown.
    */
   static register(s, t) {
-    p.set(s, t), c && (c.element.updateTimelineSelector(), p.size === 1 && c.select(s));
+    m.set(s, t), d && (d.element.updateTimelineSelector(), m.size === 1 && d.select(s));
   }
   /**
    * Unregister a timeline.
    */
   static unregister(s) {
-    p.delete(s), c && c.element.updateTimelineSelector();
+    m.delete(s), d && d.element.updateTimelineSelector();
   }
   /**
    * Get all registered timelines.
    */
   static getTimelines() {
-    return p;
+    return m;
   }
   /**
    * Get the viewer instance (if created).
    */
   static getInstance() {
-    return c;
+    return d;
   }
   /**
    * Select a timeline by name.
    */
   select(s) {
-    const t = p.get(s);
+    const t = m.get(s);
     t && (this.currentTimelineName = s, this.element.setTimeline(t), this.element.setSelectedTimeline(s));
   }
   /**
@@ -657,18 +705,18 @@ class L {
    * Remove the viewer from the page.
    */
   destroy() {
-    J(), this.element.remove(), c = null;
+    X(), this.element.remove(), d = null;
   }
   get htmlElement() {
     return this.element;
   }
 }
-const B = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const A = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  TimelineViewer: L,
-  TimelineViewerElement: I
+  TimelineViewer: T,
+  TimelineViewerElement: q
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  L as TimelineViewer,
-  I as TimelineViewerElement
+  T as TimelineViewer,
+  q as TimelineViewerElement
 };

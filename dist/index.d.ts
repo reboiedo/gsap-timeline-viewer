@@ -59,6 +59,9 @@ export declare class TimelineViewerElement extends HTMLElement {
     private manageBodyPadding;
     private isAutofit;
     private showEaseCurves;
+    private playrangeStart;
+    private playrangeEnd;
+    private draggingPlayrange;
     private container;
     private playBtn;
     private loopBtn;
@@ -89,6 +92,10 @@ export declare class TimelineViewerElement extends HTMLElement {
     private startResize;
     private onResize;
     private endResize;
+    private startPlayrangeDrag;
+    private onPlayrangeDrag;
+    private endPlayrangeDrag;
+    private updatePlayrangeDisplay;
     private updateBodyPadding;
     private clearBodyPadding;
     private scrubToPosition;
@@ -106,6 +113,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private applyAutofit;
     private updatePlayState;
     private onTimelineUpdate;
+    private checkPlayrangeConstraint;
     private updatePlayhead;
     private updateTimeDisplay;
     private updateActiveTracks;

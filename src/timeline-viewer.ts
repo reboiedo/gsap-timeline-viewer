@@ -13,6 +13,8 @@ interface StoredSettings {
   isAutofit: boolean;
   showEaseCurves: boolean;
   selectedTimeline?: string;
+  playrangeStart?: number;  // 0-1 progress
+  playrangeEnd?: number;    // 0-1 progress
 }
 
 export interface TimelineViewerOptions {
@@ -23,6 +25,8 @@ export interface TimelineViewerOptions {
 }
 
 const CONTROLS_HEIGHT = 40;
+const PLAYRANGE_HEIGHT = 16;
+const COLLAPSED_HEIGHT = CONTROLS_HEIGHT + PLAYRANGE_HEIGHT;
 
 export class TimelineViewerElement extends HTMLElement {
   private shadow: ShadowRoot;
@@ -37,6 +41,9 @@ export class TimelineViewerElement extends HTMLElement {
   private manageBodyPadding = true;
   private isAutofit = false;
   private showEaseCurves = false;
+  private playrangeStart = 0;   // 0-1 progress
+  private playrangeEnd = 1;     // 0-1 progress
+  private draggingPlayrange: 'start' | 'end' | null = null;
 
   // DOM references
   private container!: HTMLDivElement;
@@ -76,6 +83,8 @@ export class TimelineViewerElement extends HTMLElement {
         this.isLooping = settings.isLooping ?? false;
         this.isAutofit = settings.isAutofit ?? false;
         this.showEaseCurves = settings.showEaseCurves ?? false;
+        this.playrangeStart = settings.playrangeStart ?? 0;
+        this.playrangeEnd = settings.playrangeEnd ?? 1;
       }
     } catch {
       // Ignore localStorage errors
@@ -92,6 +101,8 @@ export class TimelineViewerElement extends HTMLElement {
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
         selectedTimeline: this.timelineSelect?.value,
+        playrangeStart: this.playrangeStart,
+        playrangeEnd: this.playrangeEnd,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     } catch {
@@ -116,6 +127,7 @@ export class TimelineViewerElement extends HTMLElement {
     }
     this.speedBtn.textContent = `${SPEED_OPTIONS[this.speedIndex]}x`;
     this.container.style.height = `${this.height}px`;
+    this.updatePlayrangeDisplay();
   }
 
   disconnectedCallback() {
@@ -140,6 +152,7 @@ export class TimelineViewerElement extends HTMLElement {
     this.updatePlayhead();
     this.updateTimeDisplay();
     this.updatePlayState();
+    this.updatePlayrangeDisplay();
     requestAnimationFrame(() => this.applyAutofit());
   }
 
@@ -183,6 +196,9 @@ export class TimelineViewerElement extends HTMLElement {
     this.shadow.innerHTML = `
       <style>${styles}</style>
       <div class="gtv-container ${this.collapsed ? 'collapsed' : ''}" style="height: ${this.height}px;">
+        <!-- Resize Handle (at top of container) -->
+        <div class="gtv-resize-handle"></div>
+
         <!-- Controls Bar -->
         <div class="gtv-controls">
           <div class="gtv-controls-left">
@@ -225,11 +241,19 @@ export class TimelineViewerElement extends HTMLElement {
           </div>
         </div>
 
-        <!-- Timeline Area -->
-        <div class="gtv-timeline-area">
-          <!-- Resize Handle -->
-          <div class="gtv-resize-handle"></div>
+        <!-- Playrange Bar (always visible) -->
+        <div class="gtv-playrange-bar">
+          <div class="gtv-playrange-track">
+            <div class="gtv-playrange-inactive-left"></div>
+            <div class="gtv-playrange-active"></div>
+            <div class="gtv-playrange-inactive-right"></div>
+          </div>
+          <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
+          <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
+        </div>
 
+        <!-- Timeline Area (hidden when collapsed) -->
+        <div class="gtv-timeline-area">
           <!-- Ruler -->
           <div class="gtv-ruler">
             <div class="gtv-ruler-inner"></div>
@@ -302,6 +326,9 @@ export class TimelineViewerElement extends HTMLElement {
           this.toggleEaseCurves();
           break;
       }
+
+      // Remove focus from button so Space doesn't trigger it again
+      (btn as HTMLButtonElement).blur();
     });
 
     // Timeline selector change
@@ -343,14 +370,21 @@ export class TimelineViewerElement extends HTMLElement {
     document.addEventListener('mousemove', (e) => {
       this.onScrub(e);
       this.onResize(e);
+      this.onPlayrangeDrag(e);
     });
     document.addEventListener('mouseup', () => {
       this.endScrub();
       this.endResize();
+      this.endPlayrangeDrag();
     });
 
     // Resize handle
     this.resizeHandle.addEventListener('mousedown', (e) => this.startResize(e));
+
+    // Playrange handle dragging
+    this.shadow.querySelectorAll('.gtv-playrange-handle').forEach(handle => {
+      handle.addEventListener('mousedown', (e) => this.startPlayrangeDrag(e as MouseEvent));
+    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -420,9 +454,74 @@ export class TimelineViewerElement extends HTMLElement {
     this.saveSettings();
   }
 
+  private startPlayrangeDrag(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const handle = (e.target as HTMLElement).closest('.gtv-playrange-handle') as HTMLElement;
+    if (!handle) return;
+    this.draggingPlayrange = handle.dataset.handle as 'start' | 'end';
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  private onPlayrangeDrag(e: MouseEvent) {
+    if (!this.draggingPlayrange) return;
+    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const progress = x / rect.width;
+
+    if (this.draggingPlayrange === 'start') {
+      // Don't let start go past end
+      this.playrangeStart = Math.min(progress, this.playrangeEnd - 0.01);
+    } else {
+      // Don't let end go before start
+      this.playrangeEnd = Math.max(progress, this.playrangeStart + 0.01);
+    }
+
+    this.updatePlayrangeDisplay();
+  }
+
+  private endPlayrangeDrag() {
+    if (!this.draggingPlayrange) return;
+    this.draggingPlayrange = null;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    this.saveSettings();
+  }
+
+  private updatePlayrangeDisplay() {
+    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
+    const handleStart = this.shadow.querySelector('.gtv-playrange-handle-start') as HTMLElement;
+    const handleEnd = this.shadow.querySelector('.gtv-playrange-handle-end') as HTMLElement;
+    const active = this.shadow.querySelector('.gtv-playrange-active') as HTMLElement;
+    const inactiveLeft = this.shadow.querySelector('.gtv-playrange-inactive-left') as HTMLElement;
+    const inactiveRight = this.shadow.querySelector('.gtv-playrange-inactive-right') as HTMLElement;
+
+    if (track && handleStart && handleEnd && active && inactiveLeft && inactiveRight) {
+      const startPct = this.playrangeStart * 100;
+      const endPct = this.playrangeEnd * 100;
+
+      // Position handles relative to bar using track's offset
+      const trackLeft = track.offsetLeft;
+      const trackWidth = track.offsetWidth;
+      handleStart.style.left = `${trackLeft + (this.playrangeStart * trackWidth)}px`;
+      handleEnd.style.left = `${trackLeft + (this.playrangeEnd * trackWidth)}px`;
+
+      // Update active region (lighter area between handles)
+      active.style.left = `${startPct}%`;
+      active.style.width = `${endPct - startPct}%`;
+
+      // Update inactive regions (darker areas outside handles)
+      inactiveLeft.style.width = `${startPct}%`;
+      inactiveRight.style.width = `${100 - endPct}%`;
+    }
+  }
+
   private updateBodyPadding() {
     if (!this.manageBodyPadding) return;
-    const height = this.collapsed ? CONTROLS_HEIGHT : this.height;
+    const height = this.collapsed ? COLLAPSED_HEIGHT : this.height;
     document.body.style.paddingBottom = `${height}px`;
   }
 
@@ -490,17 +589,20 @@ export class TimelineViewerElement extends HTMLElement {
     const currentTime = Math.round(this.timeline.time() * 1000) / 1000;
     const points = this.getTimePoints();
 
-    // Find the largest point that is less than current time
-    let prevPoint = 0;
+    // Get playrange start boundary in time
+    const rangeStart = this.playrangeStart * this.timelineData.duration;
+
+    // Find the largest point that is less than current time, but within playrange
+    let prevPoint = rangeStart;
     for (const p of points) {
-      if (p < currentTime - 0.001) {
+      if (p < currentTime - 0.001 && p >= rangeStart) {
         prevPoint = p;
-      } else {
+      } else if (p >= currentTime) {
         break;
       }
     }
 
-    this.timeline.time(prevPoint);
+    this.timeline.time(Math.max(prevPoint, rangeStart));
     this.timeline.pause();
     this.updatePlayState();
   }
@@ -510,16 +612,19 @@ export class TimelineViewerElement extends HTMLElement {
     const currentTime = Math.round(this.timeline.time() * 1000) / 1000;
     const points = this.getTimePoints();
 
-    // Find the smallest point that is greater than current time
-    let nextPoint = this.timelineData.duration;
+    // Get playrange end boundary in time
+    const rangeEnd = this.playrangeEnd * this.timelineData.duration;
+
+    // Find the smallest point that is greater than current time, but within playrange
+    let nextPoint = rangeEnd;
     for (const p of points) {
-      if (p > currentTime + 0.001) {
+      if (p > currentTime + 0.001 && p <= rangeEnd) {
         nextPoint = p;
         break;
       }
     }
 
-    this.timeline.time(nextPoint);
+    this.timeline.time(Math.min(nextPoint, rangeEnd));
     this.timeline.pause();
     this.updatePlayState();
   }
@@ -592,7 +697,7 @@ export class TimelineViewerElement extends HTMLElement {
     const minHeight = 100;
     const maxHeight = window.innerHeight - 100;
 
-    this.height = Math.max(minHeight, Math.min(CONTROLS_HEIGHT + rulerHeight + tracksHeight + padding, maxHeight));
+    this.height = Math.max(minHeight, Math.min(COLLAPSED_HEIGHT + rulerHeight + tracksHeight + padding, maxHeight));
     this.container.style.height = `${this.height}px`;
     this.updateBodyPadding();
   }
@@ -613,6 +718,31 @@ export class TimelineViewerElement extends HTMLElement {
     this.updateTimeDisplay();
     this.updateActiveTracks();
     this.updatePlayState();
+    this.checkPlayrangeConstraint();
+  }
+
+  private checkPlayrangeConstraint() {
+    if (!this.timeline) return;
+    // Only apply playrange constraint if range is not full (0-1)
+    if (this.playrangeStart === 0 && this.playrangeEnd === 1) return;
+    // Only apply constraint when playing, not when paused (e.g., after jumping)
+    if (this.timeline.paused()) return;
+
+    const progress = this.timeline.progress();
+    if (progress >= this.playrangeEnd) {
+      if (this.isLooping) {
+        // Loop back to start
+        this.timeline.progress(this.playrangeStart);
+      } else {
+        // Stop at end
+        this.timeline.progress(this.playrangeEnd);
+        this.timeline.pause();
+        this.updatePlayState();
+      }
+    } else if (progress < this.playrangeStart) {
+      // Constrain to start
+      this.timeline.progress(this.playrangeStart);
+    }
   }
 
   private updatePlayhead() {
