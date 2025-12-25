@@ -14,46 +14,85 @@ const timelineRegistry = new Map<string, gsap.core.Timeline>();
 let viewerInstance: TimelineViewer | null = null;
 let autoDetectEnabled = true;
 let timelineCounter = 0;
-let originalTimelineMethod: typeof gsap.timeline | null = null;
+
+// Track timelines we've already seen to avoid duplicates
+const seenTimelines = new WeakSet<gsap.core.Timeline>();
+let scanInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Install the auto-detection hook on gsap.timeline()
+ * Get gsap object from window (works with both global and module imports)
  */
-function installAutoDetect() {
-  const gsapObj = (window as unknown as { gsap?: typeof gsap }).gsap;
-  if (!gsapObj || originalTimelineMethod) return; // Already installed or no GSAP
+function getGsap(): typeof gsap | null {
+  return (window as unknown as { gsap?: typeof gsap }).gsap || null;
+}
 
-  originalTimelineMethod = gsapObj.timeline.bind(gsapObj);
+/**
+ * Scan GSAP's global timeline for child timelines.
+ * This works regardless of how gsap was imported.
+ */
+function scanForTimelines() {
+  const gsapObj = getGsap();
+  if (!gsapObj?.globalTimeline) return;
 
-  gsapObj.timeline = function(vars?: gsap.TimelineVars) {
-    const timeline = originalTimelineMethod!(vars);
+  // Get all child timelines from globalTimeline
+  const children = gsapObj.globalTimeline.getChildren(false, false, true) as gsap.core.Timeline[];
 
-    if (autoDetectEnabled) {
-      // Use the id from vars, or generate one
-      let name: string;
-      if (vars?.id && typeof vars.id === 'string') {
-        name = vars.id;
-      } else {
-        name = `Timeline ${++timelineCounter}`;
-      }
+  children.forEach((timeline) => {
+    // Skip if we've already registered this timeline
+    if (seenTimelines.has(timeline)) return;
+    seenTimelines.add(timeline);
 
-      // Avoid duplicates
-      if (!timelineRegistry.has(name)) {
-        timelineRegistry.set(name, timeline);
-
-        // Update viewer if it exists
-        if (viewerInstance) {
-          viewerInstance.htmlElement.updateTimelineSelector();
-          // Auto-select if this is the first timeline
-          if (timelineRegistry.size === 1) {
-            viewerInstance.select(name);
-          }
-        }
-      }
+    // Get name from timeline's vars.id or generate one
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const vars = (timeline as any).vars || {};
+    let name: string;
+    if (vars.id && typeof vars.id === 'string') {
+      name = vars.id;
+    } else {
+      name = `Timeline ${++timelineCounter}`;
     }
 
-    return timeline;
-  } as typeof gsap.timeline;
+    // Avoid duplicate names
+    let finalName = name;
+    let suffix = 1;
+    while (timelineRegistry.has(finalName)) {
+      finalName = `${name} (${++suffix})`;
+    }
+
+    timelineRegistry.set(finalName, timeline);
+
+    // Update viewer if it exists
+    if (viewerInstance) {
+      viewerInstance.htmlElement.updateTimelineSelector();
+      // Auto-select if this is the first timeline
+      if (timelineRegistry.size === 1) {
+        viewerInstance.select(finalName);
+      }
+    }
+  });
+}
+
+/**
+ * Start scanning for timelines periodically
+ */
+function startAutoDetect() {
+  if (scanInterval) return;
+
+  // Initial scan
+  scanForTimelines();
+
+  // Scan periodically for new timelines
+  scanInterval = setInterval(scanForTimelines, 500);
+}
+
+/**
+ * Stop scanning for timelines
+ */
+function stopAutoDetect() {
+  if (scanInterval) {
+    clearInterval(scanInterval);
+    scanInterval = null;
+  }
 }
 
 export class TimelineViewer {
@@ -80,13 +119,13 @@ export class TimelineViewer {
     // Enable/disable auto-detection (default: true)
     autoDetectEnabled = config.autoDetect !== false;
 
-    // Install auto-detection hook
-    if (autoDetectEnabled) {
-      installAutoDetect();
-    }
-
     viewerInstance = new TimelineViewer(config);
     document.body.appendChild(viewerInstance.element);
+
+    // Start auto-detection (scans gsap.globalTimeline for child timelines)
+    if (autoDetectEnabled) {
+      startAutoDetect();
+    }
 
     // Auto-select default or first available timeline after a tick
     setTimeout(() => {
@@ -167,6 +206,7 @@ export class TimelineViewer {
    * Remove the viewer from the page.
    */
   destroy(): void {
+    stopAutoDetect();
     this.element.remove();
     viewerInstance = null;
   }
