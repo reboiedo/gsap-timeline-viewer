@@ -10,16 +10,17 @@ A lightweight, framework-agnostic development tool for visualizing and debugging
 
 - **Auto-detection** - Automatically captures all `gsap.timeline()` calls
 - **Visual timeline** - Colored tracks for each tween with labels
+- **Playrange bar** - Drag handles to set playback boundaries
 - **Ease curve visualization** - Toggle to see ease curves as track shapes
 - **Stagger expansion** - Expand staggered animations to see individual targets
 - **Overlap/gap indicators** - Visual badges showing `-=` and `+=` timing offsets
 - **Playback controls** - Play/pause, skip, speed control (0.25x to 4x), loop
 - **Scrubbing** - Click or drag anywhere on the timeline
-- **Auto-fit height** - Toggle to fit panel to content
 - **Resizable** - Drag the top edge to resize
 - **Keyboard shortcuts** - Space, J, K, L
 - **Timeline selector** - Switch between multiple timelines
 - **Collapsible panel** - Minimize when not in use
+- **Persistent settings** - Panel size, playrange, and preferences saved
 
 ## Installation
 
