@@ -399,6 +399,8 @@
   fill: none;
   stroke: oklch(75% 0.12 var(--track-hue, 220));
   stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
@@ -411,6 +413,10 @@
   background: transparent !important;
   border-radius: 0;
   overflow: visible;
+}
+
+.gtv-container.show-ease-curves .gtv-track-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* Playhead - spans entire timeline area */

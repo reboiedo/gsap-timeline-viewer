@@ -862,23 +862,29 @@ export class TimelineViewerElement extends HTMLElement {
     const yMax = Math.max(1, maxY);
     const yRange = yMax - yMin || 1;
 
-    // Map values to SVG coordinates, scaled to actual range
+    // Add vertical padding for stroke (so it doesn't get clipped at top/bottom)
+    const padY = 5;
+    const contentHeight = 100 - padY * 2;
+
+    // Map values to SVG coordinates, scaled to actual range, with vertical padding
     const points = samples.map((y, i) => {
       const x = (i / (samples.length - 1)) * 100;
-      const yPos = ((yMax - y) / yRange) * 100;
+      const yPos = padY + ((yMax - y) / yRange) * contentHeight;
       return { x, y: yPos };
     });
 
     const curvePoints = points.map(p => `${p.x},${p.y}`).join(' L');
 
-    // Bottom of fill area (y=0 line position)
-    const bottomY = ((yMax - 0) / yRange) * 100;
+    // Bottom of fill area (y=0 line position, with padding)
+    const bottomY = padY + ((yMax - 0) / yRange) * contentHeight;
 
     const fillPath = `M0,${bottomY} L${curvePoints} L100,${bottomY} Z`;
     const strokePath = `M${points.map(p => `${p.x},${p.y}`).join(' L')}`;
 
-    // Unique ID for gradient
-    const gradientId = `ease-grad-${Math.random().toString(36).substr(2, 9)}`;
+    // Unique IDs for gradient and clip
+    const uid = Math.random().toString(36).substr(2, 9);
+    const gradientId = `ease-grad-${uid}`;
+    const clipId = `ease-clip-${uid}`;
 
     return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -887,8 +893,11 @@ export class TimelineViewerElement extends HTMLElement {
             <stop offset="0%" stop-color="var(--track-color)" stop-opacity="0.8" />
             <stop offset="100%" stop-color="var(--track-color)" stop-opacity="0" />
           </linearGradient>
+          <clipPath id="${clipId}">
+            <rect x="0" y="0" width="100" height="100" />
+          </clipPath>
         </defs>
-        <path class="gtv-ease-fill" d="${fillPath}" fill="url(#${gradientId})" />
+        <path class="gtv-ease-fill" d="${fillPath}" fill="url(#${gradientId})" clip-path="url(#${clipId})" />
         <path class="gtv-ease-stroke" d="${strokePath}" />
       </svg>
     `;
