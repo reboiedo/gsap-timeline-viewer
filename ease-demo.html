@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ease Curves Demo</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #0a0a0a;
+        color: #fff;
+        padding: 20px 20px 300px;
+      }
+      h1 { font-size: 24px; margin-bottom: 20px; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+      }
+      .box {
+        height: 40px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 500;
+        color: #fff;
+        opacity: 0.3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GSAP Ease Curves</h1>
+    <div class="grid" id="grid"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script type="module">
+      import { TimelineViewer } from "./src/index.ts";
+      TimelineViewer.create({ gsap });
+
+      const eases = [
+        "none",
+        "power1.in", "power1.out", "power1.inOut",
+        "power2.in", "power2.out", "power2.inOut",
+        "power3.in", "power3.out", "power3.inOut",
+        "power4.in", "power4.out", "power4.inOut",
+        "back.in", "back.out", "back.inOut",
+        "elastic.in", "elastic.out", "elastic.inOut",
+        "bounce.in", "bounce.out", "bounce.inOut",
+        "circ.in", "circ.out", "circ.inOut",
+        "expo.in", "expo.out", "expo.inOut",
+        "sine.in", "sine.out", "sine.inOut",
+        "steps(5)", "steps(10)", "steps(20)",
+      ];
+
+      const colors = [
+        "#3b82f6", "#f59e0b", "#ec4899", "#10b981", "#8b5cf6", "#ef4444",
+        "#06b6d4", "#f97316", "#a855f7", "#14b8a6", "#6366f1", "#f43f5e",
+      ];
+
+      // Create boxes
+      const grid = document.getElementById("grid");
+      eases.forEach((ease, i) => {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.id = `box-${i}`;
+        box.style.background = colors[i % colors.length];
+        box.textContent = ease;
+        grid.appendChild(box);
+      });
+
+      // Create timeline
+      const tl = gsap.timeline({ id: "Ease Curves", paused: true });
+
+      eases.forEach((ease, i) => {
+        tl.to(`#box-${i}`, {
+          opacity: 1,
+          duration: 1,
+          ease: ease,
+          id: ease,
+        }, i * 0.1);
+      });
+
+      setTimeout(() => tl.play(), 300);
+    </script>
+  </body>
+</html>

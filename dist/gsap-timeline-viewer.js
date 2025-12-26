@@ -1,16 +1,16 @@
 var H = Object.defineProperty;
-var R = (l, s, t) => s in l ? H(l, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[s] = t;
-var o = (l, s, t) => R(l, typeof s != "symbol" ? s + "" : s, t);
-let B = 0, M = null;
-function N(l) {
-  M = l;
+var R = (o, s, t) => s in o ? H(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
+var l = (o, s, t) => R(o, typeof s != "symbol" ? s + "" : s, t);
+let B = 0, I = null;
+function N(o) {
+  I = o;
 }
-function w(l) {
-  if (!l || l.length === 0) return "Unknown";
-  const s = l[0];
+function w(o) {
+  if (!o || o.length === 0) return "Unknown";
+  const s = o[0];
   return s.id ? `#${s.id}` : s.classList && s.classList.length > 0 ? `.${s.classList[0]}` : s.tagName ? s.tagName.toLowerCase() : "element";
 }
-function j(l) {
+function j(o) {
   const s = [
     "ease",
     "duration",
@@ -34,18 +34,18 @@ function j(l) {
     "reversed",
     "startAt"
   ];
-  return Object.keys(l).filter((t) => !s.includes(t));
+  return Object.keys(o).filter((t) => !s.includes(t));
 }
-function V(l = 20) {
+function V(o = 50) {
   const s = [];
-  for (let t = 0; t <= l; t++)
-    s.push(t / l);
+  for (let t = 0; t <= o; t++)
+    s.push(t / o);
   return s;
 }
-function G(l, s, t = 20) {
+function G(o, s, t = 50) {
   var n;
-  const e = M || window.gsap;
-  let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, l.trim());
+  const e = I || window.gsap;
+  let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o.trim());
   if (!i && s && (i = s._ease), !i)
     return V(t);
   const a = [];
@@ -53,47 +53,47 @@ function G(l, s, t = 20) {
     a.push(i(r / t));
   return a;
 }
-function W(l) {
+function W(o) {
   const s = [];
-  l.getChildren(!0, !0, !1).forEach((e, i) => {
+  o.getChildren(!0, !0, !1).forEach((e, i) => {
     if (!("targets" in e)) return;
     const a = e, n = a.targets(), r = a.vars || {}, c = j(r);
-    let v = "";
+    let p = "";
     if (r.id && typeof r.id == "string")
-      v = r.id;
+      p = r.id;
     else {
-      const y = w(n), k = c.slice(0, 2).join(", ");
-      v = k ? `${y} (${k})` : y;
+      const m = w(n), y = c.slice(0, 2).join(", ");
+      p = y ? `${m} (${y})` : m;
     }
-    const g = e.startTime(), h = e.duration();
-    let p = "power1.out";
-    r.ease && (p = typeof r.ease == "string" ? r.ease : "custom");
-    let u, f;
-    if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? u = r.stagger : typeof r.stagger == "object" && (u = r.stagger.each || 0), u)) {
-      const y = h - u * (n.length - 1);
-      f = n.map((k, I) => {
-        const L = g + I * u;
+    const h = e.startTime(), v = e.duration();
+    let b = "power1.out";
+    r.ease && (b = typeof r.ease == "string" ? r.ease : "custom");
+    let d, u;
+    if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? d = r.stagger : typeof r.stagger == "object" && (d = r.stagger.each || 0), d)) {
+      const m = v - d * (n.length - 1);
+      u = n.map((y, L) => {
+        const $ = h + L * d;
         return {
-          targetLabel: w([k]),
-          startTime: L,
-          endTime: L + y
+          targetLabel: w([y]),
+          startTime: $,
+          endTime: $ + m
         };
       });
     }
     s.push({
       id: `tween-${++B}`,
-      label: v,
-      startTime: g,
-      endTime: g + h,
-      duration: h,
+      label: p,
+      startTime: h,
+      endTime: h + v,
+      duration: v,
       targets: w(n),
       properties: c,
       colorIndex: i % 6,
       hasStagger: !!r.stagger,
-      ease: p,
-      easeSamples: G(p, a),
-      staggerValue: u,
-      staggerChildren: f
+      ease: b,
+      easeSamples: G(b, a),
+      staggerValue: d,
+      staggerChildren: u
     });
   });
   for (let e = 1; e < s.length; e++) {
@@ -101,52 +101,52 @@ function W(l) {
     Math.abs(n) > 1e-3 && (a.overlapWithPrev = Math.round(n * 1e3) / 1e3);
   }
   return {
-    duration: l.duration(),
+    duration: o.duration(),
     tweens: s
   };
 }
 function _() {
   B = 0;
 }
-function b(l, s = !0) {
-  const t = Math.abs(l);
+function x(o, s = !0) {
+  const t = Math.abs(o);
   return s ? t.toFixed(2) : t.toFixed(0);
 }
-const O = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-curve path{fill:var(--track-color);stroke:none}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", S = [0.25, 0.5, 1, 2, 4], E = "gsap-timeline-viewer-settings", U = 40, F = 16, z = U + F;
+const O = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-fill{fill:var(--track-color)}.gtv-ease-stroke{fill:none;stroke:oklch(75% .12 var(--track-hue, 220));stroke-width:2;vector-effect:non-scaling-stroke}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", S = [0.25, 0.5, 1, 2, 4], E = "gsap-timeline-viewer-settings", U = 40, F = 16, z = U + F;
 class q extends HTMLElement {
   constructor() {
     super();
-    o(this, "shadow");
-    o(this, "timeline", null);
-    o(this, "timelineData", null);
-    o(this, "isPlaying", !1);
-    o(this, "isLooping", !1);
-    o(this, "speedIndex", 2);
+    l(this, "shadow");
+    l(this, "timeline", null);
+    l(this, "timelineData", null);
+    l(this, "isPlaying", !1);
+    l(this, "isLooping", !1);
+    l(this, "speedIndex", 2);
     // 1x
-    o(this, "collapsed", !1);
-    o(this, "height", 200);
-    o(this, "isDragging", !1);
-    o(this, "manageBodyPadding", !0);
-    o(this, "isAutofit", !1);
-    o(this, "showEaseCurves", !1);
-    o(this, "playrangeStart", 0);
+    l(this, "collapsed", !1);
+    l(this, "height", 200);
+    l(this, "isDragging", !1);
+    l(this, "manageBodyPadding", !0);
+    l(this, "isAutofit", !1);
+    l(this, "showEaseCurves", !1);
+    l(this, "playrangeStart", 0);
     // 0-1 progress
-    o(this, "playrangeEnd", 1);
+    l(this, "playrangeEnd", 1);
     // 0-1 progress
-    o(this, "draggingPlayrange", null);
+    l(this, "draggingPlayrange", null);
     // DOM references
-    o(this, "container");
-    o(this, "playBtn");
-    o(this, "loopBtn");
-    o(this, "speedBtn");
-    o(this, "timeDisplay");
-    o(this, "rulerInner");
-    o(this, "tracksScroll");
-    o(this, "playhead");
-    o(this, "scrubArea");
-    o(this, "resizeHandle");
-    o(this, "timelineSelect");
-    o(this, "isResizing", !1);
+    l(this, "container");
+    l(this, "playBtn");
+    l(this, "loopBtn");
+    l(this, "speedBtn");
+    l(this, "timeDisplay");
+    l(this, "rulerInner");
+    l(this, "tracksScroll");
+    l(this, "playhead");
+    l(this, "scrubArea");
+    l(this, "resizeHandle");
+    l(this, "timelineSelect");
+    l(this, "isResizing", !1);
     this.shadow = this.attachShadow({ mode: "open" }), this.loadSettings();
   }
   connectedCallback() {
@@ -398,8 +398,8 @@ class q extends HTMLElement {
   updatePlayrangeDisplay() {
     const t = this.shadow.querySelector(".gtv-playrange-track"), e = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), a = this.shadow.querySelector(".gtv-playrange-active"), n = this.shadow.querySelector(".gtv-playrange-inactive-left"), r = this.shadow.querySelector(".gtv-playrange-inactive-right");
     if (t && e && i && a && n && r) {
-      const c = this.playrangeStart * 100, v = this.playrangeEnd * 100, g = t.offsetLeft, h = t.offsetWidth;
-      e.style.left = `${g + this.playrangeStart * h}px`, i.style.left = `${g + this.playrangeEnd * h}px`, a.style.left = `${c}%`, a.style.width = `${v - c}%`, n.style.width = `${c}%`, r.style.width = `${100 - v}%`;
+      const c = this.playrangeStart * 100, p = this.playrangeEnd * 100, h = t.offsetLeft, v = t.offsetWidth;
+      e.style.left = `${h + this.playrangeStart * v}px`, i.style.left = `${h + this.playrangeEnd * v}px`, a.style.left = `${c}%`, a.style.width = `${p - c}%`, n.style.width = `${c}%`, r.style.width = `${100 - p}%`;
     }
   }
   updateBodyPadding() {
@@ -478,14 +478,14 @@ class q extends HTMLElement {
     const t = this.shadow.querySelectorAll(".gtv-track");
     let e = 0;
     const i = 36, a = 30;
-    t.forEach((g) => {
-      if (e += i, g.classList.contains("expanded")) {
-        const h = g.querySelectorAll(".gtv-stagger-child");
-        e += h.length * a;
+    t.forEach((h) => {
+      if (e += i, h.classList.contains("expanded")) {
+        const v = h.querySelectorAll(".gtv-stagger-child");
+        e += v.length * a;
       }
     });
-    const n = 24, r = 16, c = 100, v = window.innerHeight - 100;
-    this.height = Math.max(c, Math.min(z + n + e + r, v)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    const n = 24, r = 16, c = 100, p = window.innerHeight - 100;
+    this.height = Math.max(c, Math.min(z + n + e + r, p)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   updatePlayState() {
     if (!this.timeline) return;
@@ -509,7 +509,7 @@ class q extends HTMLElement {
   updateTimeDisplay() {
     if (!this.timeline || !this.timelineData) return;
     const t = this.timeline.time(), e = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), a = this.timeDisplay.querySelector(".gtv-time-total");
-    i.textContent = b(t), a.textContent = ` / ${b(e)}`;
+    i.textContent = x(t), a.textContent = ` / ${x(e)}`;
   }
   updateActiveTracks() {
     if (!this.timeline || !this.timelineData) return;
@@ -541,7 +541,7 @@ class q extends HTMLElement {
       e.push(`
         <div class="gtv-ruler-marker" style="left: ${n}%;">
           <div class="gtv-ruler-marker-line"></div>
-          <span class="gtv-ruler-marker-label">${b(a, !1)}s</span>
+          <span class="gtv-ruler-marker-label">${x(a, !1)}s</span>
         </div>
       `);
     }
@@ -551,14 +551,17 @@ class q extends HTMLElement {
     return t <= 1 ? 0.25 : t <= 3 ? 0.5 : t <= 10 ? 1 : t <= 30 ? 5 : 10;
   }
   renderEaseCurve(t) {
-    return t != null && t.length ? `
+    if (!(t != null && t.length)) return "";
+    const e = Math.min(...t), i = Math.max(...t), a = Math.min(0, e), n = Math.max(1, i), r = n - a || 1, c = t.map((d, u) => {
+      const m = u / (t.length - 1) * 100, y = (n - d) / r * 100;
+      return { x: m, y };
+    }), p = c.map((d) => `${d.x},${d.y}`).join(" L"), h = (n - 0) / r * 100, v = `M0,${h} L${p} L100,${h} Z`, b = `M${c.map((d) => `${d.x},${d.y}`).join(" L")}`;
+    return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="${`M0,100 L${t.map((a, n) => {
-      const r = n / (t.length - 1) * 100, c = 100 - a * 100;
-      return `${r},${c}`;
-    }).join(" L")} L100,100 Z`}" />
+        <path class="gtv-ease-fill" d="${v}" />
+        <path class="gtv-ease-stroke" d="${b}" />
       </svg>
-    ` : "";
+    `;
   }
   getEaseClipPath(t) {
     return t != null && t.length ? `polygon(0% 100%, ${t.map((i, a) => {
@@ -567,46 +570,46 @@ class q extends HTMLElement {
     }).join(", ")}, 100% 100%)` : "";
   }
   renderTrack(t, e) {
-    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, r = this.renderEaseCurve(t.easeSamples);
-    let c = "";
-    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (c = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
+    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, c = [220, 70, 350, 160, 290, 25][t.colorIndex % 6], p = this.renderEaseCurve(t.easeSamples);
+    let h = "";
+    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (h = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
     let v = "";
     if (t.staggerChildren && t.staggerChildren.length > 0) {
-      const h = t.staggerChildren.map((p) => {
-        const u = p.startTime / e * 100, f = (p.endTime - p.startTime) / e * 100;
+      const d = t.staggerChildren.map((u) => {
+        const m = u.startTime / e * 100, y = (u.endTime - u.startTime) / e * 100;
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${u}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
-              ${r}
-              <span class="gtv-track-label">${p.targetLabel}</span>
+                 style="left: ${m}%; width: ${y}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${c};">
+              ${p}
+              <span class="gtv-track-label">${u.targetLabel}</span>
             </div>
           </div>
         `;
       }).join("");
-      v = `<div class="gtv-stagger-children" data-for="${t.id}">${h}</div>`;
+      v = `<div class="gtv-stagger-children" data-for="${t.id}">${d}</div>`;
     }
-    let g = "";
+    let b = "";
     if (t.overlapWithPrev !== void 0) {
-      const h = t.overlapWithPrev > 0, p = Math.abs(t.overlapWithPrev) / e * 100, u = h ? `-${b(t.overlapWithPrev)}s` : `+${b(Math.abs(t.overlapWithPrev))}s`, f = this.getEaseClipPath(t.easeSamples);
-      h ? g = `
-          <div class="gtv-overlap-region" style="left: ${i}%; width: ${p}%; --ease-clip: ${f};"></div>
-          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${u}</span>
-        ` : g = `
-          <div class="gtv-gap-connector" style="left: ${i - p}%; width: ${p}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${u}</span>
+      const d = t.overlapWithPrev > 0, u = Math.abs(t.overlapWithPrev) / e * 100, m = d ? `-${x(t.overlapWithPrev)}s` : `+${x(Math.abs(t.overlapWithPrev))}s`, y = this.getEaseClipPath(t.easeSamples);
+      d ? b = `
+          <div class="gtv-overlap-region" style="left: ${i}%; width: ${u}%; --ease-clip: ${y};"></div>
+          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${m}</span>
+        ` : b = `
+          <div class="gtv-gap-connector" style="left: ${i - u}%; width: ${u}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${m}</span>
         `;
     }
     return `
       <div class="gtv-track" data-expandable="${t.hasStagger && t.staggerChildren ? "true" : "false"}">
-        ${g}
+        ${b}
         <div class="gtv-track-bar"
              data-color="${n}"
              data-tween-id="${t.id}"
-             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n});">
-          ${r}
+             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${c};">
+          ${p}
           <span class="gtv-track-label">${t.label}</span>
-          ${c}
+          ${h}
         </div>
         ${v}
       </div>
@@ -614,40 +617,40 @@ class q extends HTMLElement {
   }
 }
 customElements.define("gsap-timeline-viewer", q);
-const m = /* @__PURE__ */ new Map();
-let d = null, $ = !0, K = 0, P = null;
-const C = /* @__PURE__ */ new WeakSet();
-let x = null;
-function J() {
+const f = /* @__PURE__ */ new Map();
+let g = null, C = !0, Y = 0, P = null;
+const D = /* @__PURE__ */ new WeakSet();
+let k = null;
+function K() {
   if (P) return P;
-  const l = window;
-  return l.gsap || l.GSAP || null;
+  const o = window;
+  return o.gsap || o.GSAP || null;
 }
-function D() {
-  const l = J();
-  if (!(l != null && l.globalTimeline)) return;
-  l.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
-    if (C.has(t)) return;
-    C.add(t);
+function M() {
+  const o = K();
+  if (!(o != null && o.globalTimeline)) return;
+  o.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
+    if (D.has(t)) return;
+    D.add(t);
     const e = t.vars || {};
     let i;
-    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++K}`;
+    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++Y}`;
     let a = i, n = 1;
-    for (; m.has(a); )
+    for (; f.has(a); )
       a = `${i} (${++n})`;
-    m.set(a, t), d && (d.htmlElement.updateTimelineSelector(), m.size === 1 && d.select(a));
+    f.set(a, t), g && (g.htmlElement.updateTimelineSelector(), f.size === 1 && g.select(a));
   });
 }
-function Y() {
-  x || (D(), x = setInterval(D, 500));
+function J() {
+  k || (M(), k = setInterval(M, 500));
 }
 function X() {
-  x && (clearInterval(x), x = null);
+  k && (clearInterval(k), k = null);
 }
 class T {
   constructor(s = {}) {
-    o(this, "element");
-    o(this, "currentTimelineName", null);
+    l(this, "element");
+    l(this, "currentTimelineName", null);
     this.element = document.createElement("gsap-timeline-viewer"), s.height && this.element.style.setProperty("--viewer-height", `${s.height}px`);
   }
   /**
@@ -655,44 +658,44 @@ class T {
    * Call this once - subsequent calls return the existing instance.
    */
   static create(s = {}) {
-    return d || (s.gsap && (P = s.gsap, N(s.gsap)), $ = s.autoDetect !== !1, d = new T(s), document.body.appendChild(d.element), $ && Y(), setTimeout(() => {
-      if (d.element.updateTimelineSelector(), s.defaultTimeline && m.has(s.defaultTimeline))
-        d.select(s.defaultTimeline);
-      else if (m.size > 0) {
-        const t = m.keys().next().value;
-        t && d.select(t);
+    return g || (s.gsap && (P = s.gsap, N(s.gsap)), C = s.autoDetect !== !1, g = new T(s), document.body.appendChild(g.element), C && J(), setTimeout(() => {
+      if (g.element.updateTimelineSelector(), s.defaultTimeline && f.has(s.defaultTimeline))
+        g.select(s.defaultTimeline);
+      else if (f.size > 0) {
+        const t = f.keys().next().value;
+        t && g.select(t);
       }
-    }, 0), d);
+    }, 0), g);
   }
   /**
    * Register a timeline with a name so it appears in the dropdown.
    */
   static register(s, t) {
-    m.set(s, t), d && (d.element.updateTimelineSelector(), m.size === 1 && d.select(s));
+    f.set(s, t), g && (g.element.updateTimelineSelector(), f.size === 1 && g.select(s));
   }
   /**
    * Unregister a timeline.
    */
   static unregister(s) {
-    m.delete(s), d && d.element.updateTimelineSelector();
+    f.delete(s), g && g.element.updateTimelineSelector();
   }
   /**
    * Get all registered timelines.
    */
   static getTimelines() {
-    return m;
+    return f;
   }
   /**
    * Get the viewer instance (if created).
    */
   static getInstance() {
-    return d;
+    return g;
   }
   /**
    * Select a timeline by name.
    */
   select(s) {
-    const t = m.get(s);
+    const t = f.get(s);
     t && (this.currentTimelineName = s, this.element.setTimeline(t), this.element.setSelectedTimeline(s));
   }
   /**
@@ -705,7 +708,7 @@ class T {
    * Remove the viewer from the page.
    */
   destroy() {
-    X(), this.element.remove(), d = null;
+    X(), this.element.remove(), g = null;
   }
   get htmlElement() {
     return this.element;

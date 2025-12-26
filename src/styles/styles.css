@@ -391,9 +391,15 @@
   transition: opacity 0.15s;
 }
 
-.gtv-ease-curve path {
+.gtv-ease-fill {
   fill: var(--track-color);
-  stroke: none;
+}
+
+.gtv-ease-stroke {
+  fill: none;
+  stroke: oklch(75% 0.12 var(--track-hue, 220));
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .gtv-container.show-ease-curves .gtv-ease-curve {

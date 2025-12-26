@@ -71,7 +71,7 @@ function getAnimatedProperties(vars: Record<string, unknown>): string[] {
 /**
  * Generate linear ease samples as fallback.
  */
-function linearEaseSamples(points = 20): number[] {
+function linearEaseSamples(points = 50): number[] {
   const samples: number[] = [];
   for (let i = 0; i <= points; i++) {
     samples.push(i / points);
@@ -83,7 +83,7 @@ function linearEaseSamples(points = 20): number[] {
  * Sample an ease function to get curve points for visualization.
  * Tries GSAP's parseEase first, falls back to tween._ease, then linear.
  */
-function sampleEase(easeName: string, tween?: gsap.core.Tween, points = 20): number[] {
+function sampleEase(easeName: string, tween?: gsap.core.Tween, points = 50): number[] {
   // Use stored gsap ref first, then fall back to window.gsap
   const gsapObj = gsapRef || (window as unknown as { gsap?: typeof gsap }).gsap;
 

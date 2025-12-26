@@ -855,19 +855,32 @@ export class TimelineViewerElement extends HTMLElement {
   private renderEaseCurve(samples: number[] | undefined): string {
     if (!samples?.length) return '';
 
-    // Build path for filled area from bottom up to the curve
-    const curvePoints = samples.map((y, i) => {
-      const x = (i / (samples.length - 1)) * 100;
-      const yPos = 100 - (y * 100);  // Flip Y axis
-      return `${x},${yPos}`;
-    }).join(' L');
+    // Find actual range (elastic/bounce/back can go outside 0-1)
+    const minY = Math.min(...samples);
+    const maxY = Math.max(...samples);
+    const yMin = Math.min(0, minY);
+    const yMax = Math.max(1, maxY);
+    const yRange = yMax - yMin || 1;
 
-    // Path: start at bottom-left, line to first point, curve points, then to bottom-right, close
-    const path = `M0,100 L${curvePoints} L100,100 Z`;
+    // Map values to SVG coordinates, scaled to actual range
+    const points = samples.map((y, i) => {
+      const x = (i / (samples.length - 1)) * 100;
+      const yPos = ((yMax - y) / yRange) * 100;
+      return { x, y: yPos };
+    });
+
+    const curvePoints = points.map(p => `${p.x},${p.y}`).join(' L');
+
+    // Bottom of fill area (y=0 line position)
+    const bottomY = ((yMax - 0) / yRange) * 100;
+
+    const fillPath = `M0,${bottomY} L${curvePoints} L100,${bottomY} Z`;
+    const strokePath = `M${points.map(p => `${p.x},${p.y}`).join(' L')}`;
 
     return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="${path}" />
+        <path class="gtv-ease-fill" d="${fillPath}" />
+        <path class="gtv-ease-stroke" d="${strokePath}" />
       </svg>
     `;
   }
@@ -889,6 +902,8 @@ export class TimelineViewerElement extends HTMLElement {
     const left = (tween.startTime / totalDuration) * 100;
     const width = (tween.duration / totalDuration) * 100;
     const colorIndex = tween.colorIndex + 1;
+    const trackHues = [220, 70, 350, 160, 290, 25]; // Matches CSS track colors
+    const hue = trackHues[tween.colorIndex % 6];
 
     // Ease curve SVG
     const easeCurveHtml = this.renderEaseCurve(tween.easeSamples);
@@ -908,7 +923,7 @@ export class TimelineViewerElement extends HTMLElement {
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex});">
+                 style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex}); --track-hue: ${hue};">
               ${easeCurveHtml}
               <span class="gtv-track-label">${child.targetLabel}</span>
             </div>
@@ -953,7 +968,7 @@ export class TimelineViewerElement extends HTMLElement {
         <div class="gtv-track-bar"
              data-color="${colorIndex}"
              data-tween-id="${tween.id}"
-             style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex});">
+             style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex}); --track-hue: ${hue};">
           ${easeCurveHtml}
           <span class="gtv-track-label">${tween.label}</span>
           ${staggerLabel}
