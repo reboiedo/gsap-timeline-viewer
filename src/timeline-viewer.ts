@@ -877,9 +877,18 @@ export class TimelineViewerElement extends HTMLElement {
     const fillPath = `M0,${bottomY} L${curvePoints} L100,${bottomY} Z`;
     const strokePath = `M${points.map(p => `${p.x},${p.y}`).join(' L')}`;
 
+    // Unique ID for gradient
+    const gradientId = `ease-grad-${Math.random().toString(36).substr(2, 9)}`;
+
     return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path class="gtv-ease-fill" d="${fillPath}" />
+        <defs>
+          <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--track-color)" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="var(--track-color)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="gtv-ease-fill" d="${fillPath}" fill="url(#${gradientId})" />
         <path class="gtv-ease-stroke" d="${strokePath}" />
       </svg>
     `;

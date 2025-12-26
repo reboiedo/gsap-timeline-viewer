@@ -392,7 +392,7 @@
 }
 
 .gtv-ease-fill {
-  fill: var(--track-color);
+  /* Fill handled by gradient in SVG */
 }
 
 .gtv-ease-stroke {
@@ -409,6 +409,8 @@
 .gtv-container.show-ease-curves .gtv-track-bar,
 .gtv-container.show-ease-curves .gtv-stagger-child-bar {
   background: transparent !important;
+  border-radius: 0;
+  overflow: visible;
 }
 
 /* Playhead - spans entire timeline area */
