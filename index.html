@@ -98,7 +98,10 @@
       <div class="instructions">
         <strong>Keyboard Shortcuts:</strong><br />
         <code>Space</code> Play/Pause &nbsp; <code>J</code> Previous point
-        &nbsp; <code>K</code> Next point &nbsp; <code>L</code> Toggle loop<br /><br />
+        &nbsp; <code>K</code> Next point &nbsp; <code>L</code> Toggle loop
+        &nbsp; <code>Y</code> Toggle yoyo<br />
+        <code>[</code> Set playrange start &nbsp; <code>]</code> Set playrange end
+        &nbsp; <code>\</code> Reset playrange<br /><br />
         <strong>Mouse:</strong> Click anywhere on the timeline to scrub. Drag
         the top edge to resize.
       </div>
@@ -118,6 +121,7 @@
 
       // Staggered fade in
       mainTimeline
+        .addLabel("intro")
         .to(".box", {
           opacity: 1,
           y: 0,
@@ -127,6 +131,7 @@
           id: "Boxes Fade In",
         })
         // Staggered slide
+        .addLabel("slide")
         .to(".box", {
           x: 300,
           duration: 0.8,
@@ -135,6 +140,7 @@
           id: "Boxes Slide",
         })
         // Individual animations
+        .addLabel("effects")
         .to("#box1", {
           rotation: 360,
           duration: 0.5,
@@ -151,7 +157,7 @@
           },
           "-=0.3"
         )
-        // Gap example
+        // Relative gap example (+=)
         .to(
           "#box3",
           {
@@ -162,7 +168,18 @@
           },
           "+=0.5"
         )
+        // Absolute position example
+        .to(
+          "#box4",
+          {
+            backgroundColor: "#8b5cf6",
+            duration: 0.3,
+            id: "Box 4 Color",
+          },
+          4
+        )
         // Staggered bounce
+        .addLabel("bounce")
         .to(".box", {
           y: -30,
           duration: 0.3,

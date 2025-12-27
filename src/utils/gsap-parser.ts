@@ -21,9 +21,15 @@ export interface TweenData {
   overlapWithPrev?: number;  // positive = overlap, negative = gap
 }
 
+export interface LabelData {
+  name: string;
+  time: number;
+}
+
 export interface TimelineData {
   duration: number;
   tweens: TweenData[];
+  labels: LabelData[];
 }
 
 let tweenCounter = 0;
@@ -200,9 +206,16 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
     }
   }
 
+  // Extract timeline labels
+  const labels = Object.entries(timeline.labels || {}).map(([name, time]) => ({
+    name,
+    time: time as number,
+  })).sort((a, b) => a.time - b.time);
+
   return {
     duration: timeline.duration(),
     tweens,
+    labels,
   };
 }
 

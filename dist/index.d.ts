@@ -52,6 +52,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private timelineData;
     private isPlaying;
     private isLooping;
+    private isYoyo;
     private speedIndex;
     private collapsed;
     private height;
@@ -65,6 +66,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private container;
     private playBtn;
     private loopBtn;
+    private yoyoBtn;
     private speedBtn;
     private timeDisplay;
     private rulerInner;
@@ -96,6 +98,9 @@ export declare class TimelineViewerElement extends HTMLElement {
     private onPlayrangeDrag;
     private endPlayrangeDrag;
     private updatePlayrangeDisplay;
+    private setPlayrangeStart;
+    private setPlayrangeEnd;
+    private resetPlayrange;
     private updateBodyPadding;
     private clearBodyPadding;
     private scrubToPosition;
@@ -106,6 +111,7 @@ export declare class TimelineViewerElement extends HTMLElement {
     private jumpToPrevPoint;
     private jumpToNextPoint;
     private toggleLoop;
+    private toggleYoyo;
     private cycleSpeed;
     private toggleCollapse;
     private toggleAutofit;
@@ -120,9 +126,9 @@ export declare class TimelineViewerElement extends HTMLElement {
     private renderTracks;
     private renderGridLines;
     private renderRuler;
+    private renderLabelLines;
     private calculateInterval;
     private renderEaseCurve;
-    private getEaseClipPath;
     private renderTrack;
 }
 

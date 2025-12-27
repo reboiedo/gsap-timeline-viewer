@@ -1,16 +1,16 @@
 var N = Object.defineProperty;
-var V = (o, s, t) => s in o ? N(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
-var l = (o, s, t) => V(o, typeof s != "symbol" ? s + "" : s, t);
-let B = 0, I = null;
-function G(o) {
-  I = o;
+var j = (o, s, t) => s in o ? N(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
+var c = (o, s, t) => j(o, typeof s != "symbol" ? s + "" : s, t);
+let H = 0, q = null;
+function V(o) {
+  q = o;
 }
 function T(o) {
   if (!o || o.length === 0) return "Unknown";
   const s = o[0];
   return s.id ? `#${s.id}` : s.classList && s.classList.length > 0 ? `.${s.classList[0]}` : s.tagName ? s.tagName.toLowerCase() : "element";
 }
-function W(o) {
+function G(o) {
   const s = [
     "ease",
     "duration",
@@ -36,117 +36,124 @@ function W(o) {
   ];
   return Object.keys(o).filter((t) => !s.includes(t));
 }
-function _(o = 50) {
+function W(o = 50) {
   const s = [];
   for (let t = 0; t <= o; t++)
     s.push(t / o);
   return s;
 }
-function O(o, s, t = 50) {
+function _(o, s, t = 50) {
   var n;
-  const e = I || window.gsap;
+  const e = q || window.gsap;
   let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o.trim());
   if (!i && s && (i = s._ease), !i)
-    return _(t);
+    return W(t);
   const a = [];
-  for (let r = 0; r <= t; r++)
-    a.push(i(r / t));
+  for (let l = 0; l <= t; l++)
+    a.push(i(l / t));
   return a;
 }
-function U(o) {
+function O(o) {
   const s = [];
-  o.getChildren(!0, !0, !1).forEach((e, i) => {
-    if (!("targets" in e)) return;
-    const a = e, n = a.targets(), r = a.vars || {}, c = W(r);
-    let h = "";
+  o.getChildren(!0, !0, !1).forEach((i, a) => {
+    if (!("targets" in i)) return;
+    const n = i, l = n.targets(), r = n.vars || {}, h = G(r);
+    let p = "";
     if (r.id && typeof r.id == "string")
-      h = r.id;
+      p = r.id;
     else {
-      const m = T(n), f = c.slice(0, 2).join(", ");
-      h = f ? `${m} (${f})` : m;
+      const f = T(l), k = h.slice(0, 2).join(", ");
+      p = k ? `${f} (${k})` : f;
     }
-    const g = e.startTime(), p = e.duration();
+    const v = i.startTime(), u = i.duration();
     let b = "power1.out";
     r.ease && (b = typeof r.ease == "string" ? r.ease : "custom");
-    let v, u;
-    if (r.stagger && n.length > 1 && (typeof r.stagger == "number" ? v = r.stagger : typeof r.stagger == "object" && (v = r.stagger.each || 0), v)) {
-      const m = p - v * (n.length - 1);
-      u = n.map((f, k) => {
-        const x = g + k * v;
+    let d, m;
+    if (r.stagger && l.length > 1 && (typeof r.stagger == "number" ? d = r.stagger : typeof r.stagger == "object" && (d = r.stagger.each || 0), d)) {
+      const f = u - d * (l.length - 1);
+      m = l.map((k, x) => {
+        const P = v + x * d;
         return {
-          targetLabel: T([f]),
-          startTime: x,
-          endTime: x + m
+          targetLabel: T([k]),
+          startTime: P,
+          endTime: P + f
         };
       });
     }
     s.push({
-      id: `tween-${++B}`,
-      label: h,
-      startTime: g,
-      endTime: g + p,
-      duration: p,
-      targets: T(n),
-      properties: c,
-      colorIndex: i % 6,
+      id: `tween-${++H}`,
+      label: p,
+      startTime: v,
+      endTime: v + u,
+      duration: u,
+      targets: T(l),
+      properties: h,
+      colorIndex: a % 6,
       hasStagger: !!r.stagger,
       ease: b,
-      easeSamples: O(b, a),
-      staggerValue: v,
-      staggerChildren: u
+      easeSamples: _(b, n),
+      staggerValue: d,
+      staggerChildren: m
     });
   });
-  for (let e = 1; e < s.length; e++) {
-    const i = s[e - 1], a = s[e], n = i.endTime - a.startTime;
-    Math.abs(n) > 1e-3 && (a.overlapWithPrev = Math.round(n * 1e3) / 1e3);
+  for (let i = 1; i < s.length; i++) {
+    const a = s[i - 1], n = s[i], l = a.endTime - n.startTime;
+    Math.abs(l) > 1e-3 && (n.overlapWithPrev = Math.round(l * 1e3) / 1e3);
   }
+  const e = Object.entries(o.labels || {}).map(([i, a]) => ({
+    name: i,
+    time: a
+  })).sort((i, a) => i.time - a.time);
   return {
     duration: o.duration(),
-    tweens: s
+    tweens: s,
+    labels: e
   };
 }
-function F() {
-  B = 0;
+function U() {
+  H = 0;
 }
 function S(o, s = !0) {
   const t = Math.abs(o);
   return s ? t.toFixed(2) : t.toFixed(0);
 }
-const Y = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-stroke{fill:none;stroke:oklch(75% .12 var(--track-hue, 220));stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important;border-radius:0;overflow:visible}.gtv-container.show-ease-curves .gtv-track-label{text-shadow:0 1px 3px rgba(0,0,0,.8)}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", P = [0.25, 0.5, 1, 2, 4], E = "gsap-timeline-viewer-settings", K = 40, J = 16, z = K + J;
-class H extends HTMLElement {
+const F = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-labels-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:2}.gtv-label-line{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--gtv-accent);opacity:.4}.gtv-label-line-text{position:absolute;top:4px;font-size:9px;color:var(--gtv-accent);white-space:nowrap}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-stroke{fill:none;stroke:oklch(75% .12 var(--track-hue, 220));stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important;border-radius:0;overflow:visible}.gtv-container.show-ease-curves .gtv-track-label{text-shadow:0 1px 3px rgba(0,0,0,.8)}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", L = [0.25, 0.5, 1, 2, 4], z = "gsap-timeline-viewer-settings", K = 40, X = 16, C = K + X;
+class I extends HTMLElement {
   constructor() {
     super();
-    l(this, "shadow");
-    l(this, "timeline", null);
-    l(this, "timelineData", null);
-    l(this, "isPlaying", !1);
-    l(this, "isLooping", !1);
-    l(this, "speedIndex", 2);
+    c(this, "shadow");
+    c(this, "timeline", null);
+    c(this, "timelineData", null);
+    c(this, "isPlaying", !1);
+    c(this, "isLooping", !1);
+    c(this, "isYoyo", !1);
+    c(this, "speedIndex", 2);
     // 1x
-    l(this, "collapsed", !1);
-    l(this, "height", 200);
-    l(this, "isDragging", !1);
-    l(this, "manageBodyPadding", !0);
-    l(this, "isAutofit", !1);
-    l(this, "showEaseCurves", !1);
-    l(this, "playrangeStart", 0);
+    c(this, "collapsed", !1);
+    c(this, "height", 200);
+    c(this, "isDragging", !1);
+    c(this, "manageBodyPadding", !0);
+    c(this, "isAutofit", !1);
+    c(this, "showEaseCurves", !1);
+    c(this, "playrangeStart", 0);
     // 0-1 progress
-    l(this, "playrangeEnd", 1);
+    c(this, "playrangeEnd", 1);
     // 0-1 progress
-    l(this, "draggingPlayrange", null);
+    c(this, "draggingPlayrange", null);
     // DOM references
-    l(this, "container");
-    l(this, "playBtn");
-    l(this, "loopBtn");
-    l(this, "speedBtn");
-    l(this, "timeDisplay");
-    l(this, "rulerInner");
-    l(this, "tracksScroll");
-    l(this, "playhead");
-    l(this, "scrubArea");
-    l(this, "resizeHandle");
-    l(this, "timelineSelect");
-    l(this, "isResizing", !1);
+    c(this, "container");
+    c(this, "playBtn");
+    c(this, "loopBtn");
+    c(this, "yoyoBtn");
+    c(this, "speedBtn");
+    c(this, "timeDisplay");
+    c(this, "rulerInner");
+    c(this, "tracksScroll");
+    c(this, "playhead");
+    c(this, "scrubArea");
+    c(this, "resizeHandle");
+    c(this, "timelineSelect");
+    c(this, "isResizing", !1);
     this.shadow = this.attachShadow({ mode: "open" }), this.loadSettings();
   }
   connectedCallback() {
@@ -154,10 +161,10 @@ class H extends HTMLElement {
   }
   loadSettings() {
     try {
-      const t = localStorage.getItem(E);
+      const t = localStorage.getItem(z);
       if (t) {
         const e = JSON.parse(t);
-        this.height = e.height ?? 200, this.collapsed = e.collapsed ?? !1, this.speedIndex = e.speedIndex ?? 2, this.isLooping = e.isLooping ?? !1, this.isAutofit = e.isAutofit ?? !1, this.showEaseCurves = e.showEaseCurves ?? !1, this.playrangeStart = e.playrangeStart ?? 0, this.playrangeEnd = e.playrangeEnd ?? 1;
+        this.height = e.height ?? 200, this.collapsed = e.collapsed ?? !1, this.speedIndex = e.speedIndex ?? 2, this.isLooping = e.isLooping ?? !1, this.isYoyo = e.isYoyo ?? !1, this.isAutofit = e.isAutofit ?? !1, this.showEaseCurves = e.showEaseCurves ?? !1, this.playrangeStart = e.playrangeStart ?? 0, this.playrangeEnd = e.playrangeEnd ?? 1;
       }
     } catch {
     }
@@ -170,32 +177,33 @@ class H extends HTMLElement {
         collapsed: this.collapsed,
         speedIndex: this.speedIndex,
         isLooping: this.isLooping,
+        isYoyo: this.isYoyo,
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
         selectedTimeline: (t = this.timelineSelect) == null ? void 0 : t.value,
         playrangeStart: this.playrangeStart,
         playrangeEnd: this.playrangeEnd
       };
-      localStorage.setItem(E, JSON.stringify(e));
+      localStorage.setItem(z, JSON.stringify(e));
     } catch {
     }
   }
   applyLoadedSettings() {
-    var t, e, i;
-    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (t = this.shadow.querySelector('[data-action="ease-curves"]')) == null || t.classList.add("active")), this.isAutofit && ((e = this.shadow.querySelector('[data-action="autofit"]')) == null || e.classList.add("active")), this.isLooping && ((i = this.loopBtn) == null || i.classList.add("active")), this.speedBtn.textContent = `${P[this.speedIndex]}x`, this.container.style.height = `${this.height}px`, this.updatePlayrangeDisplay();
+    var t, e, i, a;
+    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (t = this.shadow.querySelector('[data-action="ease-curves"]')) == null || t.classList.add("active")), this.isAutofit && ((e = this.shadow.querySelector('[data-action="autofit"]')) == null || e.classList.add("active")), this.isLooping && ((i = this.loopBtn) == null || i.classList.add("active")), this.isYoyo && ((a = this.yoyoBtn) == null || a.classList.add("active")), this.speedBtn.textContent = `${L[this.speedIndex]}x`, this.container.style.height = `${this.height}px`, this.updatePlayrangeDisplay();
   }
   disconnectedCallback() {
     this.detachTimeline(), this.clearBodyPadding();
   }
   setTimeline(t) {
-    this.detachTimeline(), this.timeline = t, F(), this.timelineData = U(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), t.timeScale(P[this.speedIndex]), t.repeat(this.isLooping ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), this.updatePlayrangeDisplay(), requestAnimationFrame(() => this.applyAutofit());
+    this.detachTimeline(), this.timeline = t, U(), this.timelineData = O(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), t.timeScale(L[this.speedIndex]), t.repeat(this.isLooping ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), this.updatePlayrangeDisplay(), requestAnimationFrame(() => this.applyAutofit());
   }
   updateTimelineSelector() {
     Promise.resolve().then(() => A).then(({ TimelineViewer: t }) => {
       const e = t.getTimelines(), i = this.timelineSelect.value;
       this.timelineSelect.innerHTML = "", e.forEach((a, n) => {
-        const r = document.createElement("option");
-        r.value = n, r.textContent = n, this.timelineSelect.appendChild(r);
+        const l = document.createElement("option");
+        l.value = n, l.textContent = n, this.timelineSelect.appendChild(l);
       }), i && e.has(i) && (this.timelineSelect.value = i);
     });
   }
@@ -207,7 +215,7 @@ class H extends HTMLElement {
   }
   render() {
     this.shadow.innerHTML = `
-      <style>${Y}</style>
+      <style>${F}</style>
       <div class="gtv-container ${this.collapsed ? "collapsed" : ""}" style="height: ${this.height}px;">
         <!-- Resize Handle (at top of container) -->
         <div class="gtv-resize-handle"></div>
@@ -220,6 +228,9 @@ class H extends HTMLElement {
             </select>
             <button class="gtv-btn" data-action="loop" title="Loop (L)">
               <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+            </button>
+            <button class="gtv-btn" data-action="yoyo" title="Yoyo (Y)">
+              <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
             </button>
             <button class="gtv-btn gtv-speed-btn" data-action="speed" title="Playback speed">1x</button>
           </div>
@@ -289,7 +300,7 @@ class H extends HTMLElement {
           </div>
         </div>
       </div>
-    `, this.container = this.shadow.querySelector(".gtv-container"), this.playBtn = this.shadow.querySelector('[data-action="play"]'), this.loopBtn = this.shadow.querySelector('[data-action="loop"]'), this.speedBtn = this.shadow.querySelector('[data-action="speed"]'), this.timeDisplay = this.shadow.querySelector(".gtv-time-display"), this.rulerInner = this.shadow.querySelector(".gtv-ruler-inner"), this.tracksScroll = this.shadow.querySelector(".gtv-tracks-scroll"), this.playhead = this.shadow.querySelector(".gtv-playhead"), this.scrubArea = this.shadow.querySelector(".gtv-scrub-area"), this.resizeHandle = this.shadow.querySelector(".gtv-resize-handle"), this.timelineSelect = this.shadow.querySelector(".gtv-timeline-select");
+    `, this.container = this.shadow.querySelector(".gtv-container"), this.playBtn = this.shadow.querySelector('[data-action="play"]'), this.loopBtn = this.shadow.querySelector('[data-action="loop"]'), this.yoyoBtn = this.shadow.querySelector('[data-action="yoyo"]'), this.speedBtn = this.shadow.querySelector('[data-action="speed"]'), this.timeDisplay = this.shadow.querySelector(".gtv-time-display"), this.rulerInner = this.shadow.querySelector(".gtv-ruler-inner"), this.tracksScroll = this.shadow.querySelector(".gtv-tracks-scroll"), this.playhead = this.shadow.querySelector(".gtv-playhead"), this.scrubArea = this.shadow.querySelector(".gtv-scrub-area"), this.resizeHandle = this.shadow.querySelector(".gtv-resize-handle"), this.timelineSelect = this.shadow.querySelector(".gtv-timeline-select");
   }
   setupEventListeners() {
     this.shadow.addEventListener("click", (t) => {
@@ -307,6 +318,9 @@ class H extends HTMLElement {
           break;
         case "loop":
           this.toggleLoop();
+          break;
+        case "yoyo":
+          this.toggleYoyo();
           break;
         case "speed":
           this.cycleSpeed();
@@ -357,6 +371,18 @@ class H extends HTMLElement {
           case "KeyL":
             t.preventDefault(), this.toggleLoop();
             break;
+          case "KeyY":
+            t.preventDefault(), this.toggleYoyo();
+            break;
+          case "BracketLeft":
+            t.preventDefault(), this.setPlayrangeStart();
+            break;
+          case "BracketRight":
+            t.preventDefault(), this.setPlayrangeEnd();
+            break;
+          case "Backslash":
+            t.preventDefault(), this.resetPlayrange();
+            break;
         }
     });
   }
@@ -396,15 +422,28 @@ class H extends HTMLElement {
     this.draggingPlayrange && (this.draggingPlayrange = null, document.body.style.cursor = "", document.body.style.userSelect = "", this.saveSettings());
   }
   updatePlayrangeDisplay() {
-    const t = this.shadow.querySelector(".gtv-playrange-track"), e = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), a = this.shadow.querySelector(".gtv-playrange-active"), n = this.shadow.querySelector(".gtv-playrange-inactive-left"), r = this.shadow.querySelector(".gtv-playrange-inactive-right");
-    if (t && e && i && a && n && r) {
-      const c = this.playrangeStart * 100, h = this.playrangeEnd * 100, g = t.offsetLeft, p = t.offsetWidth;
-      e.style.left = `${g + this.playrangeStart * p}px`, i.style.left = `${g + this.playrangeEnd * p}px`, a.style.left = `${c}%`, a.style.width = `${h - c}%`, n.style.width = `${c}%`, r.style.width = `${100 - h}%`;
+    const t = this.shadow.querySelector(".gtv-playrange-track"), e = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), a = this.shadow.querySelector(".gtv-playrange-active"), n = this.shadow.querySelector(".gtv-playrange-inactive-left"), l = this.shadow.querySelector(".gtv-playrange-inactive-right");
+    if (t && e && i && a && n && l) {
+      const r = this.playrangeStart * 100, h = this.playrangeEnd * 100, p = t.offsetLeft, v = t.offsetWidth;
+      e.style.left = `${p + this.playrangeStart * v}px`, i.style.left = `${p + this.playrangeEnd * v}px`, a.style.left = `${r}%`, a.style.width = `${h - r}%`, n.style.width = `${r}%`, l.style.width = `${100 - h}%`;
     }
+  }
+  setPlayrangeStart() {
+    if (!this.timeline) return;
+    const t = this.timeline.progress();
+    Math.abs(t - this.playrangeStart) < 1e-3 ? this.playrangeStart = 0 : this.playrangeStart = Math.min(t, this.playrangeEnd - 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
+  }
+  setPlayrangeEnd() {
+    if (!this.timeline) return;
+    const t = this.timeline.progress();
+    Math.abs(t - this.playrangeEnd) < 1e-3 ? this.playrangeEnd = 1 : this.playrangeEnd = Math.max(t, this.playrangeStart + 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
+  }
+  resetPlayrange() {
+    this.playrangeStart = 0, this.playrangeEnd = 1, this.updatePlayrangeDisplay(), this.saveSettings();
   }
   updateBodyPadding() {
     if (!this.manageBodyPadding) return;
-    const t = this.collapsed ? z : this.height;
+    const t = this.collapsed ? C : this.height;
     document.body.style.paddingBottom = `${t}px`;
   }
   clearBodyPadding() {
@@ -454,12 +493,15 @@ class H extends HTMLElement {
     this.timeline.time(Math.min(a, i)), this.timeline.pause(), this.updatePlayState();
   }
   toggleLoop() {
-    this.timeline && (this.isLooping = !this.isLooping, this.timeline.repeat(this.isLooping ? -1 : 0), this.loopBtn.classList.toggle("active", this.isLooping), this.saveSettings());
+    this.timeline && (this.isLooping = !this.isLooping, this.timeline.repeat(this.isLooping ? -1 : 0), this.loopBtn.classList.toggle("active", this.isLooping), this.isLooping && this.isYoyo && (this.isYoyo = !1, this.yoyoBtn.classList.remove("active")), this.saveSettings());
+  }
+  toggleYoyo() {
+    this.timeline && (this.isYoyo = !this.isYoyo, this.yoyoBtn.classList.toggle("active", this.isYoyo), this.isYoyo && this.isLooping && (this.isLooping = !1, this.timeline.repeat(0), this.loopBtn.classList.remove("active")), this.saveSettings());
   }
   cycleSpeed() {
     if (!this.timeline) return;
-    this.speedIndex = (this.speedIndex + 1) % P.length;
-    const t = P[this.speedIndex];
+    this.speedIndex = (this.speedIndex + 1) % L.length;
+    const t = L[this.speedIndex];
     this.timeline.timeScale(t), this.speedBtn.textContent = `${t}x`, this.saveSettings();
   }
   toggleCollapse() {
@@ -478,14 +520,14 @@ class H extends HTMLElement {
     const t = this.shadow.querySelectorAll(".gtv-track");
     let e = 0;
     const i = 36, a = 30;
-    t.forEach((g) => {
-      if (e += i, g.classList.contains("expanded")) {
-        const p = g.querySelectorAll(".gtv-stagger-child");
-        e += p.length * a;
+    t.forEach((p) => {
+      if (e += i, p.classList.contains("expanded")) {
+        const v = p.querySelectorAll(".gtv-stagger-child");
+        e += v.length * a;
       }
     });
-    const n = 24, r = 16, c = 100, h = window.innerHeight - 100;
-    this.height = Math.max(c, Math.min(z + n + e + r, h)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    const n = 24, l = 16, r = 100, h = window.innerHeight - 100;
+    this.height = Math.max(r, Math.min(C + n + e + l, h)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   updatePlayState() {
     if (!this.timeline) return;
@@ -497,9 +539,13 @@ class H extends HTMLElement {
     this.updatePlayhead(), this.updateTimeDisplay(), this.updateActiveTracks(), this.updatePlayState(), this.checkPlayrangeConstraint();
   }
   checkPlayrangeConstraint() {
-    if (!this.timeline || this.playrangeStart === 0 && this.playrangeEnd === 1 || this.timeline.paused()) return;
+    if (!this.timeline || this.timeline.paused()) return;
     const t = this.timeline.progress();
-    t >= this.playrangeEnd ? this.isLooping ? this.timeline.progress(this.playrangeStart) : (this.timeline.progress(this.playrangeEnd), this.timeline.pause(), this.updatePlayState()) : t < this.playrangeStart && this.timeline.progress(this.playrangeStart);
+    if (this.isYoyo) {
+      t >= this.playrangeEnd && !this.timeline.reversed() ? this.timeline.reverse() : t <= this.playrangeStart && this.timeline.reversed() && this.timeline.play();
+      return;
+    }
+    this.playrangeStart === 0 && this.playrangeEnd === 1 || (t >= this.playrangeEnd ? this.isLooping ? this.timeline.progress(this.playrangeStart) : (this.timeline.progress(this.playrangeEnd), this.timeline.pause(), this.updatePlayState()) : t < this.playrangeStart && this.timeline.progress(this.playrangeStart));
   }
   updatePlayhead() {
     if (!this.timeline || !this.timelineData) return;
@@ -515,16 +561,16 @@ class H extends HTMLElement {
     if (!this.timeline || !this.timelineData) return;
     const t = this.timeline.time();
     this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, a) => {
-      const n = this.timelineData.tweens[a], r = t >= n.startTime && t <= n.endTime, c = i.dataset.color;
-      r ? i.style.background = `var(--gtv-track-${c}-active)` : i.style.background = `var(--gtv-track-${c})`;
+      const n = this.timelineData.tweens[a], l = t >= n.startTime && t <= n.endTime, r = i.dataset.color;
+      l ? i.style.background = `var(--gtv-track-${r}-active)` : i.style.background = `var(--gtv-track-${r})`;
     });
   }
   renderTracks() {
     if (!this.timelineData) return;
     const { duration: t, tweens: e } = this.timelineData, i = this.shadow.querySelector(".gtv-empty");
     i.style.display = e.length > 0 ? "none" : "flex", this.renderRuler(t);
-    const a = this.renderGridLines(t), n = e.map((c) => this.renderTrack(c, t)).join(""), r = this.tracksScroll.querySelector(".gtv-scrub-area");
-    this.tracksScroll.innerHTML = a + n, this.tracksScroll.prepend(r), this.scrubArea = r;
+    const a = this.renderGridLines(t), n = e.map((r) => this.renderTrack(r, t)).join(""), l = this.tracksScroll.querySelector(".gtv-scrub-area");
+    this.tracksScroll.innerHTML = a + n, this.tracksScroll.prepend(l), this.scrubArea = l;
   }
   renderGridLines(t) {
     const e = [], i = this.calculateInterval(t);
@@ -545,17 +591,31 @@ class H extends HTMLElement {
         </div>
       `);
     }
-    this.rulerInner.innerHTML = e.join("");
+    this.rulerInner.innerHTML = e.join(""), this.renderLabelLines(t);
+  }
+  renderLabelLines(t) {
+    var n, l;
+    const e = this.shadow.querySelector(".gtv-labels-wrapper");
+    if (e && e.remove(), !((l = (n = this.timelineData) == null ? void 0 : n.labels) != null && l.length)) return;
+    const i = this.shadow.querySelector(".gtv-timeline-area");
+    if (!i) return;
+    const a = document.createElement("div");
+    a.className = "gtv-labels-wrapper";
+    for (const r of this.timelineData.labels) {
+      const h = r.time / t * 100, v = (h < 10 ? "right" : "left") === "left" ? "translateX(-100%) translateX(-4px)" : "translateX(4px)", u = document.createElement("div");
+      u.className = "gtv-label-line", u.style.left = `${h}%`, u.innerHTML = `<span class="gtv-label-line-text" style="transform: ${v};">${r.name}</span>`, a.appendChild(u);
+    }
+    i.appendChild(a);
   }
   calculateInterval(t) {
     return t <= 1 ? 0.25 : t <= 3 ? 0.5 : t <= 10 ? 1 : t <= 30 ? 5 : 10;
   }
   renderEaseCurve(t) {
     if (!(t != null && t.length)) return "";
-    const e = Math.min(...t), i = Math.max(...t), a = Math.min(0, e), n = Math.max(1, i), r = n - a || 1, c = 5, h = 100 - c * 2, g = t.map((x, q) => {
-      const R = q / (t.length - 1) * 100, j = c + (n - x) / r * h;
-      return { x: R, y: j };
-    }), p = g.map((x) => `${x.x},${x.y}`).join(" L"), b = c + (n - 0) / r * h, v = `M0,${b} L${p} L100,${b} Z`, u = `M${g.map((x) => `${x.x},${x.y}`).join(" L")}`, m = Math.random().toString(36).substr(2, 9), f = `ease-grad-${m}`, k = `ease-clip-${m}`;
+    const e = Math.min(...t), i = Math.max(...t), a = Math.min(0, e), n = Math.max(1, i), l = n - a || 1, r = 5, h = 100 - r * 2, p = t.map((x, P) => {
+      const R = P / (t.length - 1) * 100, Y = r + (n - x) / l * h;
+      return { x: R, y: Y };
+    }), v = p.map((x) => `${x.x},${x.y}`).join(" L"), u = r + (n - 0) / l * h, b = `M0,${u} L${v} L100,${u} Z`, d = `M${p.map((x) => `${x.x},${x.y}`).join(" L")}`, m = Math.random().toString(36).substr(2, 9), f = `ease-grad-${m}`, k = `ease-clip-${m}`;
     return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
         <defs>
@@ -567,75 +627,75 @@ class H extends HTMLElement {
             <rect x="0" y="0" width="100" height="100" />
           </clipPath>
         </defs>
-        <path class="gtv-ease-fill" d="${v}" fill="url(#${f})" clip-path="url(#${k})" />
-        <path class="gtv-ease-stroke" d="${u}" />
+        <path class="gtv-ease-fill" d="${b}" fill="url(#${f})" clip-path="url(#${k})" />
+        <path class="gtv-ease-stroke" d="${d}" />
       </svg>
     `;
   }
-  getEaseClipPath(t) {
-    return t != null && t.length ? `polygon(0% 100%, ${t.map((i, a) => {
-      const n = a / (t.length - 1) * 100, r = 100 - i * 100;
-      return `${n}% ${r}%`;
-    }).join(", ")}, 100% 100%)` : "";
-  }
   renderTrack(t, e) {
-    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, c = [220, 70, 350, 160, 290, 25][t.colorIndex % 6], h = this.renderEaseCurve(t.easeSamples);
-    let g = "";
-    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (g = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
+    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, r = [220, 70, 350, 160, 290, 25][t.colorIndex % 6], h = this.renderEaseCurve(t.easeSamples);
     let p = "";
+    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (p = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
+    let v = "";
     if (t.staggerChildren && t.staggerChildren.length > 0) {
-      const v = t.staggerChildren.map((u) => {
-        const m = u.startTime / e * 100, f = (u.endTime - u.startTime) / e * 100;
+      const b = t.staggerChildren.map((d) => {
+        const m = d.startTime / e * 100, f = (d.endTime - d.startTime) / e * 100;
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${m}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${c};">
+                 style="left: ${m}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${r};">
               ${h}
-              <span class="gtv-track-label">${u.targetLabel}</span>
+              <span class="gtv-track-label">${d.targetLabel}</span>
             </div>
           </div>
         `;
       }).join("");
-      p = `<div class="gtv-stagger-children" data-for="${t.id}">${v}</div>`;
+      v = `<div class="gtv-stagger-children" data-for="${t.id}">${b}</div>`;
     }
-    let b = "";
+    let u = "";
     if (t.overlapWithPrev !== void 0) {
-      const v = t.overlapWithPrev > 0, u = Math.abs(t.overlapWithPrev) / e * 100, m = v ? `-${S(t.overlapWithPrev)}s` : `+${S(Math.abs(t.overlapWithPrev))}s`, f = this.getEaseClipPath(t.easeSamples);
-      v ? b = `
-          <div class="gtv-overlap-region" style="left: ${i}%; width: ${u}%; --ease-clip: ${f};"></div>
+      const b = t.overlapWithPrev > 0, d = Math.abs(t.overlapWithPrev) / e * 100;
+      if (b) {
+        const m = `-${S(t.overlapWithPrev)}s`;
+        u = `
+          <div class="gtv-overlap-region" style="left: ${i}%; width: ${d}%;"></div>
           <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${m}</span>
-        ` : b = `
-          <div class="gtv-gap-connector" style="left: ${i - u}%; width: ${u}%;"></div>
+        `;
+      } else {
+        const m = `+${S(Math.abs(t.overlapWithPrev))}s`;
+        u = `
+          <div class="gtv-gap-connector" style="left: ${i - d}%; width: ${d}%;"></div>
           <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${m}</span>
         `;
+      }
     }
     return `
       <div class="gtv-track" data-expandable="${t.hasStagger && t.staggerChildren ? "true" : "false"}">
-        ${b}
+        ${u}
         <div class="gtv-track-bar"
              data-color="${n}"
              data-tween-id="${t.id}"
-             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${c};">
+             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${r};">
           ${h}
           <span class="gtv-track-label">${t.label}</span>
-          ${g}
+          ${p}
         </div>
-        ${p}
+        ${v}
       </div>
     `;
   }
 }
-customElements.define("gsap-timeline-viewer", H);
+customElements.define("gsap-timeline-viewer", I);
 const y = /* @__PURE__ */ new Map();
-let d = null, C = !0, X = 0, L = null;
+let g = null, D = !0, J = 0, E = null;
 const M = /* @__PURE__ */ new WeakSet();
 let w = null;
 function Z() {
-  if (L) return L;
+  if (E) return E;
   const o = window;
   return o.gsap || o.GSAP || null;
 }
-function D() {
+function B() {
   const o = Z();
   if (!(o != null && o.globalTimeline)) return;
   o.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
@@ -643,23 +703,23 @@ function D() {
     M.add(t);
     const e = t.vars || {};
     let i;
-    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++X}`;
+    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++J}`;
     let a = i, n = 1;
     for (; y.has(a); )
       a = `${i} (${++n})`;
-    y.set(a, t), d && (d.htmlElement.updateTimelineSelector(), y.size === 1 && d.select(a));
+    y.set(a, t), g && (g.htmlElement.updateTimelineSelector(), y.size === 1 && g.select(a));
   });
 }
 function Q() {
-  w || (D(), w = setInterval(D, 500));
+  w || (B(), w = setInterval(B, 500));
 }
 function tt() {
   w && (clearInterval(w), w = null);
 }
 class $ {
   constructor(s = {}) {
-    l(this, "element");
-    l(this, "currentTimelineName", null);
+    c(this, "element");
+    c(this, "currentTimelineName", null);
     this.element = document.createElement("gsap-timeline-viewer"), s.height && this.element.style.setProperty("--viewer-height", `${s.height}px`);
   }
   /**
@@ -667,26 +727,26 @@ class $ {
    * Call this once - subsequent calls return the existing instance.
    */
   static create(s = {}) {
-    return d || (s.gsap && (L = s.gsap, G(s.gsap)), C = s.autoDetect !== !1, d = new $(s), document.body.appendChild(d.element), C && Q(), setTimeout(() => {
-      if (d.element.updateTimelineSelector(), s.defaultTimeline && y.has(s.defaultTimeline))
-        d.select(s.defaultTimeline);
+    return g || (s.gsap && (E = s.gsap, V(s.gsap)), D = s.autoDetect !== !1, g = new $(s), document.body.appendChild(g.element), D && Q(), setTimeout(() => {
+      if (g.element.updateTimelineSelector(), s.defaultTimeline && y.has(s.defaultTimeline))
+        g.select(s.defaultTimeline);
       else if (y.size > 0) {
         const t = y.keys().next().value;
-        t && d.select(t);
+        t && g.select(t);
       }
-    }, 0), d);
+    }, 0), g);
   }
   /**
    * Register a timeline with a name so it appears in the dropdown.
    */
   static register(s, t) {
-    y.set(s, t), d && (d.element.updateTimelineSelector(), y.size === 1 && d.select(s));
+    y.set(s, t), g && (g.element.updateTimelineSelector(), y.size === 1 && g.select(s));
   }
   /**
    * Unregister a timeline.
    */
   static unregister(s) {
-    y.delete(s), d && d.element.updateTimelineSelector();
+    y.delete(s), g && g.element.updateTimelineSelector();
   }
   /**
    * Get all registered timelines.
@@ -698,7 +758,7 @@ class $ {
    * Get the viewer instance (if created).
    */
   static getInstance() {
-    return d;
+    return g;
   }
   /**
    * Select a timeline by name.
@@ -717,7 +777,7 @@ class $ {
    * Remove the viewer from the page.
    */
   destroy() {
-    tt(), this.element.remove(), d = null;
+    tt(), this.element.remove(), g = null;
   }
   get htmlElement() {
     return this.element;
@@ -726,9 +786,9 @@ class $ {
 const A = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   TimelineViewer: $,
-  TimelineViewerElement: H
+  TimelineViewerElement: I
 }, Symbol.toStringTag, { value: "Module" }));
 export {
   $ as TimelineViewer,
-  H as TimelineViewerElement
+  I as TimelineViewerElement
 };

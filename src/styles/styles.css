@@ -309,6 +309,34 @@
   margin-top: 2px;
 }
 
+/* Timeline Labels - Full height dashed lines */
+.gtv-labels-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--gtv-timeline-padding);
+  right: var(--gtv-timeline-padding);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.gtv-label-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--gtv-accent);
+  opacity: 0.4;
+}
+
+.gtv-label-line-text {
+  position: absolute;
+  top: 4px;
+  font-size: 9px;
+  color: var(--gtv-accent);
+  white-space: nowrap;
+}
+
 /* Vertical grid lines extending through tracks */
 .gtv-grid-line {
   position: absolute;

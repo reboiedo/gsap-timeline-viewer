@@ -10,6 +10,7 @@ interface StoredSettings {
   collapsed: boolean;
   speedIndex: number;
   isLooping: boolean;
+  isYoyo: boolean;
   isAutofit: boolean;
   showEaseCurves: boolean;
   selectedTimeline?: string;
@@ -34,6 +35,7 @@ export class TimelineViewerElement extends HTMLElement {
   private timelineData: TimelineData | null = null;
   private isPlaying = false;
   private isLooping = false;
+  private isYoyo = false;
   private speedIndex = 2; // 1x
   private collapsed = false;
   private height = 200;
@@ -49,6 +51,7 @@ export class TimelineViewerElement extends HTMLElement {
   private container!: HTMLDivElement;
   private playBtn!: HTMLButtonElement;
   private loopBtn!: HTMLButtonElement;
+  private yoyoBtn!: HTMLButtonElement;
   private speedBtn!: HTMLButtonElement;
   private timeDisplay!: HTMLSpanElement;
   private rulerInner!: HTMLDivElement;
@@ -81,6 +84,7 @@ export class TimelineViewerElement extends HTMLElement {
         this.collapsed = settings.collapsed ?? false;
         this.speedIndex = settings.speedIndex ?? 2;
         this.isLooping = settings.isLooping ?? false;
+        this.isYoyo = settings.isYoyo ?? false;
         this.isAutofit = settings.isAutofit ?? false;
         this.showEaseCurves = settings.showEaseCurves ?? false;
         this.playrangeStart = settings.playrangeStart ?? 0;
@@ -98,6 +102,7 @@ export class TimelineViewerElement extends HTMLElement {
         collapsed: this.collapsed,
         speedIndex: this.speedIndex,
         isLooping: this.isLooping,
+        isYoyo: this.isYoyo,
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
         selectedTimeline: this.timelineSelect?.value,
@@ -124,6 +129,9 @@ export class TimelineViewerElement extends HTMLElement {
     }
     if (this.isLooping) {
       this.loopBtn?.classList.add('active');
+    }
+    if (this.isYoyo) {
+      this.yoyoBtn?.classList.add('active');
     }
     this.speedBtn.textContent = `${SPEED_OPTIONS[this.speedIndex]}x`;
     this.container.style.height = `${this.height}px`;
@@ -208,6 +216,9 @@ export class TimelineViewerElement extends HTMLElement {
             <button class="gtv-btn" data-action="loop" title="Loop (L)">
               <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
             </button>
+            <button class="gtv-btn" data-action="yoyo" title="Yoyo (Y)">
+              <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+            </button>
             <button class="gtv-btn gtv-speed-btn" data-action="speed" title="Playback speed">1x</button>
           </div>
 
@@ -282,6 +293,7 @@ export class TimelineViewerElement extends HTMLElement {
     this.container = this.shadow.querySelector('.gtv-container')!;
     this.playBtn = this.shadow.querySelector('[data-action="play"]')!;
     this.loopBtn = this.shadow.querySelector('[data-action="loop"]')!;
+    this.yoyoBtn = this.shadow.querySelector('[data-action="yoyo"]')!;
     this.speedBtn = this.shadow.querySelector('[data-action="speed"]')!;
     this.timeDisplay = this.shadow.querySelector('.gtv-time-display')!;
     this.rulerInner = this.shadow.querySelector('.gtv-ruler-inner')!;
@@ -312,6 +324,9 @@ export class TimelineViewerElement extends HTMLElement {
           break;
         case 'loop':
           this.toggleLoop();
+          break;
+        case 'yoyo':
+          this.toggleYoyo();
           break;
         case 'speed':
           this.cycleSpeed();
@@ -405,6 +420,22 @@ export class TimelineViewerElement extends HTMLElement {
         case 'KeyL':
           e.preventDefault();
           this.toggleLoop();
+          break;
+        case 'KeyY':
+          e.preventDefault();
+          this.toggleYoyo();
+          break;
+        case 'BracketLeft': // [
+          e.preventDefault();
+          this.setPlayrangeStart();
+          break;
+        case 'BracketRight': // ]
+          e.preventDefault();
+          this.setPlayrangeEnd();
+          break;
+        case 'Backslash': // \
+          e.preventDefault();
+          this.resetPlayrange();
           break;
       }
     });
@@ -517,6 +548,41 @@ export class TimelineViewerElement extends HTMLElement {
       inactiveLeft.style.width = `${startPct}%`;
       inactiveRight.style.width = `${100 - endPct}%`;
     }
+  }
+
+  private setPlayrangeStart() {
+    if (!this.timeline) return;
+    const progress = this.timeline.progress();
+    // If already at start position, reset to 0
+    if (Math.abs(progress - this.playrangeStart) < 0.001) {
+      this.playrangeStart = 0;
+    } else {
+      // Don't let start go past end
+      this.playrangeStart = Math.min(progress, this.playrangeEnd - 0.01);
+    }
+    this.updatePlayrangeDisplay();
+    this.saveSettings();
+  }
+
+  private setPlayrangeEnd() {
+    if (!this.timeline) return;
+    const progress = this.timeline.progress();
+    // If already at end position, reset to 1
+    if (Math.abs(progress - this.playrangeEnd) < 0.001) {
+      this.playrangeEnd = 1;
+    } else {
+      // Don't let end go before start
+      this.playrangeEnd = Math.max(progress, this.playrangeStart + 0.01);
+    }
+    this.updatePlayrangeDisplay();
+    this.saveSettings();
+  }
+
+  private resetPlayrange() {
+    this.playrangeStart = 0;
+    this.playrangeEnd = 1;
+    this.updatePlayrangeDisplay();
+    this.saveSettings();
   }
 
   private updateBodyPadding() {
@@ -634,6 +700,24 @@ export class TimelineViewerElement extends HTMLElement {
     this.isLooping = !this.isLooping;
     this.timeline.repeat(this.isLooping ? -1 : 0);
     this.loopBtn.classList.toggle('active', this.isLooping);
+    // Mutually exclusive with yoyo
+    if (this.isLooping && this.isYoyo) {
+      this.isYoyo = false;
+      this.yoyoBtn.classList.remove('active');
+    }
+    this.saveSettings();
+  }
+
+  private toggleYoyo() {
+    if (!this.timeline) return;
+    this.isYoyo = !this.isYoyo;
+    this.yoyoBtn.classList.toggle('active', this.isYoyo);
+    // Mutually exclusive with loop
+    if (this.isYoyo && this.isLooping) {
+      this.isLooping = false;
+      this.timeline.repeat(0);
+      this.loopBtn.classList.remove('active');
+    }
     this.saveSettings();
   }
 
@@ -723,12 +807,26 @@ export class TimelineViewerElement extends HTMLElement {
 
   private checkPlayrangeConstraint() {
     if (!this.timeline) return;
-    // Only apply playrange constraint if range is not full (0-1)
-    if (this.playrangeStart === 0 && this.playrangeEnd === 1) return;
     // Only apply constraint when playing, not when paused (e.g., after jumping)
     if (this.timeline.paused()) return;
 
     const progress = this.timeline.progress();
+
+    // Handle yoyo mode (ping-pong playback)
+    if (this.isYoyo) {
+      if (progress >= this.playrangeEnd && !this.timeline.reversed()) {
+        // Reached end while playing forward - reverse
+        this.timeline.reverse();
+      } else if (progress <= this.playrangeStart && this.timeline.reversed()) {
+        // Reached start while playing backward - play forward
+        this.timeline.play();
+      }
+      return;
+    }
+
+    // Only apply playrange constraint if range is not full (0-1)
+    if (this.playrangeStart === 0 && this.playrangeEnd === 1) return;
+
     if (progress >= this.playrangeEnd) {
       if (this.isLooping) {
         // Loop back to start
@@ -842,6 +940,41 @@ export class TimelineViewerElement extends HTMLElement {
     }
 
     this.rulerInner.innerHTML = markers.join('');
+
+    // Render label lines in timeline area (full height)
+    this.renderLabelLines(duration);
+  }
+
+  private renderLabelLines(duration: number) {
+    // Remove existing label wrapper
+    const existingWrapper = this.shadow.querySelector('.gtv-labels-wrapper');
+    if (existingWrapper) existingWrapper.remove();
+
+    if (!this.timelineData?.labels?.length) return;
+
+    const timelineArea = this.shadow.querySelector('.gtv-timeline-area');
+    if (!timelineArea) return;
+
+    // Create wrapper with same padding as playhead
+    const wrapper = document.createElement('div');
+    wrapper.className = 'gtv-labels-wrapper';
+
+    for (const label of this.timelineData.labels) {
+      const left = (label.time / duration) * 100;
+      // Position text on right if near start (< 10%), otherwise on left
+      const textPosition = left < 10 ? 'right' : 'left';
+      const textTransform = textPosition === 'left'
+        ? 'translateX(-100%) translateX(-4px)'
+        : 'translateX(4px)';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'gtv-label-line';
+      labelEl.style.left = `${left}%`;
+      labelEl.innerHTML = `<span class="gtv-label-line-text" style="transform: ${textTransform};">${label.name}</span>`;
+      wrapper.appendChild(labelEl);
+    }
+
+    timelineArea.appendChild(wrapper);
   }
 
   private calculateInterval(duration: number): number {
@@ -903,19 +1036,6 @@ export class TimelineViewerElement extends HTMLElement {
     `;
   }
 
-  private getEaseClipPath(samples: number[] | undefined): string {
-    if (!samples?.length) return '';
-
-    // Generate polygon clip-path from ease samples
-    const curvePoints = samples.map((y, i) => {
-      const x = (i / (samples.length - 1)) * 100;
-      const yPos = 100 - (y * 100);  // Flip Y axis
-      return `${x}% ${yPos}%`;
-    }).join(', ');
-
-    return `polygon(0% 100%, ${curvePoints}, 100% 100%)`;
-  }
-
   private renderTrack(tween: TweenData, totalDuration: number): string {
     const left = (tween.startTime / totalDuration) * 100;
     const width = (tween.duration / totalDuration) * 100;
@@ -957,21 +1077,17 @@ export class TimelineViewerElement extends HTMLElement {
     if (tween.overlapWithPrev !== undefined) {
       const isOverlap = tween.overlapWithPrev > 0;
       const overlapWidth = (Math.abs(tween.overlapWithPrev) / totalDuration) * 100;
-      const offsetLabel = isOverlap
-        ? `-${formatTime(tween.overlapWithPrev)}s`
-        : `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
-
-      // Get clip-path for ease curve clipping
-      const easeClipPath = this.getEaseClipPath(tween.easeSamples);
 
       if (isOverlap) {
-        // Overlap: hatched region at the start of this tween
+        // Overlap: show relative offset (negative)
+        const offsetLabel = `-${formatTime(tween.overlapWithPrev)}s`;
         overlapHtml = `
-          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%; --ease-clip: ${easeClipPath};"></div>
+          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>
           <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${left}%;">${offsetLabel}</span>
         `;
       } else {
-        // Gap: dotted connector before this tween
+        // Gap: show relative offset (positive)
+        const offsetLabel = `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
         const gapLeft = left - overlapWidth;
         overlapHtml = `
           <div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>
