@@ -15,5 +15,8 @@ Thumbs.db
 # Logs
 *.log
 
+# Test files
+test*.html
+
 # Claude
 CLAUDE.md

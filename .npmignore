@@ -27,5 +27,8 @@ Thumbs.db
 # Build artifacts
 *.log
 
+# Test files
+test*.html
+
 # Claude
 CLAUDE.md
