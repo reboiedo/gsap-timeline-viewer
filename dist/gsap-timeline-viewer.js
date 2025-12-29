@@ -1,17 +1,17 @@
-var N = Object.defineProperty;
-var j = (o, s, t) => s in o ? N(o, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : o[s] = t;
-var c = (o, s, t) => j(o, typeof s != "symbol" ? s + "" : s, t);
-let H = 0, q = null;
-function V(o) {
-  q = o;
+var j = Object.defineProperty;
+var O = (c, r, e) => r in c ? j(c, r, { enumerable: !0, configurable: !0, writable: !0, value: e }) : c[r] = e;
+var d = (c, r, e) => O(c, typeof r != "symbol" ? r + "" : r, e);
+let B = 0, H = null;
+function G(c) {
+  H = c;
 }
-function T(o) {
-  if (!o || o.length === 0) return "Unknown";
-  const s = o[0];
-  return s.id ? `#${s.id}` : s.classList && s.classList.length > 0 ? `.${s.classList[0]}` : s.tagName ? s.tagName.toLowerCase() : "element";
+function M(c) {
+  if (!c || c.length === 0) return "Unknown";
+  const r = c[0];
+  return r.id ? `#${r.id}` : r.classList && r.classList.length > 0 ? `.${r.classList[0]}` : r.tagName ? r.tagName.toLowerCase() : "element";
 }
-function G(o) {
-  const s = [
+function V(c) {
+  const r = [
     "ease",
     "duration",
     "delay",
@@ -34,126 +34,129 @@ function G(o) {
     "reversed",
     "startAt"
   ];
-  return Object.keys(o).filter((t) => !s.includes(t));
+  return Object.keys(c).filter((e) => !r.includes(e));
 }
-function W(o = 50) {
+function W(c = 50) {
+  const r = [];
+  for (let e = 0; e <= c; e++)
+    r.push(e / c);
+  return r;
+}
+function _(c, r, e = 50) {
+  var a;
+  const t = H || window.gsap;
+  let i = (a = t == null ? void 0 : t.parseEase) == null ? void 0 : a.call(t, c.trim());
+  if (!i && r && (i = r._ease), !i)
+    return W(e);
   const s = [];
-  for (let t = 0; t <= o; t++)
-    s.push(t / o);
+  for (let o = 0; o <= e; o++)
+    s.push(i(o / e));
   return s;
 }
-function _(o, s, t = 50) {
-  var n;
-  const e = q || window.gsap;
-  let i = (n = e == null ? void 0 : e.parseEase) == null ? void 0 : n.call(e, o.trim());
-  if (!i && s && (i = s._ease), !i)
-    return W(t);
-  const a = [];
-  for (let l = 0; l <= t; l++)
-    a.push(i(l / t));
-  return a;
-}
-function O(o) {
-  const s = [];
-  o.getChildren(!0, !0, !1).forEach((i, a) => {
+function F(c) {
+  const r = [];
+  c.getChildren(!0, !0, !1).forEach((i, s) => {
     if (!("targets" in i)) return;
-    const n = i, l = n.targets(), r = n.vars || {}, h = G(r);
-    let p = "";
-    if (r.id && typeof r.id == "string")
-      p = r.id;
+    const a = i, o = a.targets(), l = a.vars || {}, n = V(l);
+    let g = "";
+    if (l.id && typeof l.id == "string")
+      g = l.id;
     else {
-      const f = T(l), k = h.slice(0, 2).join(", ");
-      p = k ? `${f} (${k})` : f;
+      const f = M(o), x = n.slice(0, 2).join(", ");
+      g = x ? `${f} (${x})` : f;
     }
-    const v = i.startTime(), u = i.duration();
-    let b = "power1.out";
-    r.ease && (b = typeof r.ease == "string" ? r.ease : "custom");
-    let d, m;
-    if (r.stagger && l.length > 1 && (typeof r.stagger == "number" ? d = r.stagger : typeof r.stagger == "object" && (d = r.stagger.each || 0), d)) {
-      const f = u - d * (l.length - 1);
-      m = l.map((k, x) => {
-        const P = v + x * d;
+    const p = i.startTime(), h = i.duration();
+    let w = "power1.out";
+    l.ease && (w = typeof l.ease == "string" ? l.ease : "custom");
+    let u, b;
+    if (l.stagger && o.length > 1 && (typeof l.stagger == "number" ? u = l.stagger : typeof l.stagger == "object" && (u = l.stagger.each || 0), u)) {
+      const f = h - u * (o.length - 1);
+      b = o.map((x, m) => {
+        const k = p + m * u;
         return {
-          targetLabel: T([k]),
-          startTime: P,
-          endTime: P + f
+          targetLabel: M([x]),
+          startTime: k,
+          endTime: k + f
         };
       });
     }
-    s.push({
-      id: `tween-${++H}`,
-      label: p,
-      startTime: v,
-      endTime: v + u,
-      duration: u,
-      targets: T(l),
-      properties: h,
-      colorIndex: a % 6,
-      hasStagger: !!r.stagger,
-      ease: b,
-      easeSamples: _(b, n),
-      staggerValue: d,
-      staggerChildren: m
+    r.push({
+      id: `tween-${++B}`,
+      label: g,
+      startTime: p,
+      endTime: p + h,
+      duration: h,
+      targets: M(o),
+      properties: n,
+      colorIndex: s % 6,
+      hasStagger: !!l.stagger,
+      ease: w,
+      easeSamples: _(w, a),
+      staggerValue: u,
+      staggerChildren: b
     });
   });
-  for (let i = 1; i < s.length; i++) {
-    const a = s[i - 1], n = s[i], l = a.endTime - n.startTime;
-    Math.abs(l) > 1e-3 && (n.overlapWithPrev = Math.round(l * 1e3) / 1e3);
+  for (let i = 1; i < r.length; i++) {
+    const s = r[i - 1], a = r[i], o = s.endTime - a.startTime;
+    Math.abs(o) > 1e-3 && (a.overlapWithPrev = Math.round(o * 1e3) / 1e3);
   }
-  const e = Object.entries(o.labels || {}).map(([i, a]) => ({
+  const t = Object.entries(c.labels || {}).map(([i, s]) => ({
     name: i,
-    time: a
-  })).sort((i, a) => i.time - a.time);
+    time: s
+  })).sort((i, s) => i.time - s.time);
   return {
-    duration: o.duration(),
-    tweens: s,
-    labels: e
+    duration: c.duration(),
+    tweens: r,
+    labels: t
   };
 }
-function U() {
-  H = 0;
+function K() {
+  B = 0;
 }
-function S(o, s = !0) {
-  const t = Math.abs(o);
-  return s ? t.toFixed(2) : t.toFixed(0);
+function S(c, r = !0) {
+  const e = Math.abs(c);
+  return r ? e.toFixed(2) : e.toFixed(0);
 }
-const F = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-speed-btn{width:auto;padding:0 8px;font-size:11px;font-weight:500}.gtv-timeline-select{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);border-radius:4px;color:var(--gtv-text);font-size:11px;padding:4px 8px;cursor:pointer;max-width:140px}.gtv-timeline-select:focus{outline:none;border-color:var(--gtv-accent)}.gtv-collapse-btn{margin-left:auto}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-labels-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:2}.gtv-label-line{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--gtv-accent);opacity:.4}.gtv-label-line-text{position:absolute;top:4px;font-size:9px;color:var(--gtv-accent);white-space:nowrap}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-stroke{fill:none;stroke:oklch(75% .12 var(--track-hue, 220));stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important;border-radius:0;overflow:visible}.gtv-container.show-ease-curves .gtv-track-label{text-shadow:0 1px 3px rgba(0,0,0,.8)}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", L = [0.25, 0.5, 1, 2, 4], z = "gsap-timeline-viewer-settings", K = 40, X = 16, C = K + X;
+const U = ":host{--gtv-bg: #2a2a2a;--gtv-bg-card: #1a1a1a;--gtv-border: #333;--gtv-text: #e0e0e0;--gtv-text-muted: #888;--gtv-accent: oklch(65% .15 220);--gtv-playhead: oklch(65% .15 220);--gtv-track-height: 36px;--gtv-controls-height: 40px;--gtv-ruler-height: 24px;--gtv-timeline-padding: 16px;--gtv-track-1: oklch(50% .12 220);--gtv-track-1-active: oklch(60% .15 220);--gtv-track-2: oklch(50% .12 70);--gtv-track-2-active: oklch(60% .15 70);--gtv-track-3: oklch(50% .12 350);--gtv-track-3-active: oklch(60% .15 350);--gtv-track-4: oklch(50% .12 160);--gtv-track-4-active: oklch(60% .15 160);--gtv-track-5: oklch(50% .12 290);--gtv-track-5-active: oklch(60% .15 290);--gtv-track-6: oklch(50% .12 25);--gtv-track-6-active: oklch(60% .15 25)}*{box-sizing:border-box;margin:0;padding:0}.gtv-container{position:fixed;bottom:0;left:0;right:0;background:var(--gtv-bg);border-top:1px solid var(--gtv-border);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:12px;color:var(--gtv-text);z-index:999999;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.gtv-container.collapsed{height:auto!important}.gtv-container.collapsed .gtv-timeline-area{display:none}.gtv-controls{position:relative;display:flex;align-items:center;justify-content:center;height:var(--gtv-controls-height);padding:0 12px;background:var(--gtv-bg);gap:8px}.gtv-controls-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}.gtv-controls-center{display:flex;align-items:center;gap:8px}.gtv-controls-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}.gtv-time-display{font-variant-numeric:tabular-nums;min-width:100px;text-align:center}.gtv-time-current{color:var(--gtv-text)}.gtv-time-total{color:var(--gtv-text-muted)}.gtv-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text);cursor:pointer;transition:background .15s}.gtv-btn:hover{background:#ffffff1a}.gtv-btn:active{background:#ffffff26}.gtv-btn.active{color:var(--gtv-accent)}.gtv-btn svg{width:16px;height:16px;fill:currentColor}.gtv-btn-play svg{width:20px;height:20px}.gtv-collapse-btn{margin-left:auto}.gtv-dropdown{position:relative}.gtv-dropdown-menu{background:var(--gtv-bg-card);border:none;border-radius:6px;padding:4px;min-width:120px;box-shadow:0 4px 12px #0000004d}.gtv-dropdown-trigger{display:flex;align-items:center;gap:4px}.gtv-timeline-trigger,.gtv-speed-trigger{width:auto;padding:0 8px;font-size:11px}.gtv-timeline-value,.gtv-speed-value{white-space:nowrap}.gtv-timeline-value{max-width:120px;overflow:hidden;text-overflow:ellipsis}.gtv-dropdown-caret{opacity:.6;flex-shrink:0}.gtv-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:transparent;border:none;border-radius:4px;color:var(--gtv-text-muted);font-size:12px;cursor:pointer;transition:background .15s,color .15s}.gtv-dropdown-item:hover{background:#ffffff0d;color:var(--gtv-text)}.gtv-dropdown-item.selected{color:var(--gtv-text);background:#ffffff1a}.gtv-dropdown-item svg{width:16px;height:16px;fill:currentColor}.gtv-playrange-bar{position:relative;height:16px;background:var(--gtv-bg);padding:2px calc(var(--gtv-timeline-padding) + 8px);margin-bottom:8px}.gtv-playrange-track{position:relative;height:100%;width:100%;background:#0000004d;border-radius:0}.gtv-playrange-inactive-left,.gtv-playrange-inactive-right{position:absolute;top:0;height:100%;background:var(--gtv-bg);opacity:.5;pointer-events:none}.gtv-playrange-inactive-left{left:0;width:0%}.gtv-playrange-inactive-right{right:0;width:0%}.gtv-playrange-active{position:absolute;top:0;left:0;width:100%;height:100%;background:#00000026;pointer-events:none;border-radius:0}.gtv-playrange-handle{position:absolute;top:2px;bottom:2px;width:8px;cursor:ew-resize;z-index:5;background:#5ba3d0;border-radius:3px}.gtv-playrange-handle:hover{background:#7cbce8}.gtv-playrange-handle-start{transform:translate(-100%);border-top-right-radius:0;border-bottom-right-radius:0}.gtv-playrange-handle-end{border-top-left-radius:0;border-bottom-left-radius:0}.gtv-playrange-fill{position:absolute;top:0;left:0;width:0%;height:100%;background:#ffffff26;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-playrange-scrubber{position:absolute;top:50%;left:0%;width:12px;height:12px;background:var(--gtv-text);border-radius:50%;transform:translate(-50%,-50%);cursor:ew-resize;opacity:0;transition:opacity .15s;z-index:4}.gtv-playrange-scrubber:hover{background:#fff}.gtv-container.collapsed .gtv-playrange-fill,.gtv-container.collapsed .gtv-playrange-scrubber{opacity:1}.gtv-timeline-area{position:relative;display:flex;flex-direction:column;overflow:hidden;flex:1;background:var(--gtv-bg-card);border-radius:8px 8px 0 0;margin:0 8px}.gtv-resize-handle{position:absolute;top:0;left:0;right:0;height:8px;cursor:ns-resize;z-index:100}.gtv-resize-handle:hover,.gtv-resize-handle:active{background:#ffffff14}.gtv-ruler{position:relative;height:var(--gtv-ruler-height);background:var(--gtv-bg-card);border-bottom:1px solid var(--gtv-border);overflow:visible;flex-shrink:0;padding:0 var(--gtv-timeline-padding)}.gtv-ruler-inner{position:relative;height:100%;width:100%}.gtv-ruler-marker{position:absolute;top:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-.5px)}.gtv-ruler-marker-line{width:1px;height:6px;background:var(--gtv-text-muted)}.gtv-ruler-marker-label{font-size:10px;color:var(--gtv-text-muted);margin-top:2px}.gtv-labels-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:2}.gtv-label-line{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--gtv-accent);opacity:.4}.gtv-label-line-text{position:absolute;top:4px;font-size:9px;color:var(--gtv-accent);white-space:nowrap}.gtv-grid-line{position:absolute;top:0;width:1px;height:100%;background:var(--gtv-border);pointer-events:none}.gtv-tracks-container{position:relative;overflow-y:auto;overflow-x:hidden;flex:1;padding:0 var(--gtv-timeline-padding)}.gtv-tracks-scroll{position:relative;min-height:100%;width:100%}.gtv-track{position:relative;padding-top:var(--gtv-track-height)}.gtv-track-bar{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;font-size:11px;font-weight:500;color:#fff;overflow:hidden;cursor:default;transition:filter .15s}.gtv-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;position:relative;z-index:1}.gtv-track-stagger{font-size:10px;font-weight:400;flex-shrink:0;position:relative;z-index:1}.gtv-track-bar:hover{filter:brightness(1.1)}.gtv-ease-curve{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .15s}.gtv-ease-stroke{fill:none;stroke:oklch(75% .12 var(--track-hue, 220));stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.gtv-container.show-ease-curves .gtv-ease-curve{opacity:1}.gtv-container.show-ease-curves .gtv-track-bar,.gtv-container.show-ease-curves .gtv-stagger-child-bar{background:transparent!important;border-radius:0;overflow:visible}.gtv-container.show-ease-curves .gtv-track-label{text-shadow:0 1px 3px rgba(0,0,0,.8)}.gtv-playhead-wrapper{position:absolute;top:0;bottom:0;left:var(--gtv-timeline-padding);right:var(--gtv-timeline-padding);pointer-events:none;z-index:15}.gtv-playhead{position:absolute;top:0;bottom:0;width:0;left:0}.gtv-playhead-head{position:absolute;top:6px;left:-5px;width:11px;height:11px;background:var(--gtv-playhead);clip-path:polygon(50% 100%,0 0,100% 0)}.gtv-playhead-line{position:absolute;top:6px;bottom:0;left:0;width:1px;background:var(--gtv-playhead)}.gtv-scrub-area{position:absolute;top:0;left:0;right:0;bottom:0;cursor:ew-resize}.gtv-track[data-expandable=true] .gtv-track-bar{cursor:pointer}.gtv-expand-icon{transition:transform .2s}.gtv-track.expanded .gtv-expand-icon{transform:rotate(180deg)}.gtv-stagger-children{display:none;position:relative;width:100%}.gtv-track.expanded .gtv-stagger-children{display:block}.gtv-stagger-child{position:relative;width:100%;height:calc(var(--gtv-track-height) - 6px)}.gtv-stagger-child-bar{position:absolute;top:2px;height:calc(var(--gtv-track-height) - 12px);border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;overflow:hidden}.gtv-stagger-child-bar .gtv-track-label{overflow:hidden;position:relative;z-index:1;text-overflow:ellipsis;white-space:nowrap}.gtv-overlap-region{position:absolute;top:4px;height:calc(var(--gtv-track-height) - 8px);background:repeating-linear-gradient(-45deg,transparent,transparent 2px,rgba(255,255,255,.15) 2px,rgba(255,255,255,.15) 4px);border-radius:4px;pointer-events:none;z-index:5}.gtv-container.show-ease-curves .gtv-overlap-region{display:none}.gtv-gap-connector{position:absolute;top:50%;height:1px;border-top:1px dashed var(--gtv-text-muted);pointer-events:none}.gtv-offset-badge{position:absolute;top:50%;transform:translate(-100%,-50%);margin-left:-4px;font-size:9px;font-weight:500;padding:2px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:10}.gtv-offset-badge.gtv-badge-right{transform:translateY(-50%);margin-left:4px}.gtv-offset-overlap,.gtv-offset-gap{background:var(--gtv-bg-card);border:1px solid var(--gtv-border);color:var(--gtv-text-muted)}.gtv-empty{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--gtv-text-muted)}", L = [0.25, 0.5, 1, 2, 4], D = "gsap-timeline-viewer-settings", Y = 40, X = 16, $ = Y + X;
 class I extends HTMLElement {
   constructor() {
     super();
-    c(this, "shadow");
-    c(this, "timeline", null);
-    c(this, "timelineData", null);
-    c(this, "isPlaying", !1);
-    c(this, "isLooping", !1);
-    c(this, "isYoyo", !1);
-    c(this, "speedIndex", 2);
+    d(this, "shadow");
+    d(this, "timeline", null);
+    d(this, "timelineData", null);
+    d(this, "isPlaying", !1);
+    d(this, "loopMode", "oneshot");
+    d(this, "speedIndex", 2);
     // 1x
-    c(this, "collapsed", !1);
-    c(this, "height", 200);
-    c(this, "isDragging", !1);
-    c(this, "manageBodyPadding", !0);
-    c(this, "isAutofit", !1);
-    c(this, "showEaseCurves", !1);
-    c(this, "playrangeStart", 0);
+    d(this, "collapsed", !1);
+    d(this, "height", 200);
+    d(this, "isDragging", !1);
+    d(this, "manageBodyPadding", !0);
+    d(this, "isAutofit", !1);
+    d(this, "showEaseCurves", !1);
+    d(this, "playrangeStart", 0);
     // 0-1 progress
-    c(this, "playrangeEnd", 1);
+    d(this, "playrangeEnd", 1);
     // 0-1 progress
-    c(this, "draggingPlayrange", null);
+    d(this, "draggingPlayrange", null);
+    d(this, "draggingScrubber", !1);
     // DOM references
-    c(this, "container");
-    c(this, "playBtn");
-    c(this, "loopBtn");
-    c(this, "yoyoBtn");
-    c(this, "speedBtn");
-    c(this, "timeDisplay");
-    c(this, "rulerInner");
-    c(this, "tracksScroll");
-    c(this, "playhead");
-    c(this, "scrubArea");
-    c(this, "resizeHandle");
-    c(this, "timelineSelect");
-    c(this, "isResizing", !1);
+    d(this, "container");
+    d(this, "playBtn");
+    d(this, "loopDropdown");
+    d(this, "loopMenu");
+    d(this, "speedDropdown");
+    d(this, "speedMenu");
+    d(this, "timelineDropdown");
+    d(this, "timelineMenu");
+    d(this, "timeDisplay");
+    d(this, "rulerInner");
+    d(this, "tracksScroll");
+    d(this, "playhead");
+    d(this, "scrubArea");
+    d(this, "resizeHandle");
+    d(this, "selectedTimelineName", "");
+    d(this, "isResizing", !1);
     this.shadow = this.attachShadow({ mode: "open" }), this.loadSettings();
   }
   connectedCallback() {
@@ -161,61 +164,74 @@ class I extends HTMLElement {
   }
   loadSettings() {
     try {
-      const t = localStorage.getItem(z);
-      if (t) {
-        const e = JSON.parse(t);
-        this.height = e.height ?? 200, this.collapsed = e.collapsed ?? !1, this.speedIndex = e.speedIndex ?? 2, this.isLooping = e.isLooping ?? !1, this.isYoyo = e.isYoyo ?? !1, this.isAutofit = e.isAutofit ?? !1, this.showEaseCurves = e.showEaseCurves ?? !1, this.playrangeStart = e.playrangeStart ?? 0, this.playrangeEnd = e.playrangeEnd ?? 1;
+      const e = localStorage.getItem(D);
+      if (e) {
+        const t = JSON.parse(e);
+        this.height = t.height ?? 200, this.collapsed = t.collapsed ?? !1, this.speedIndex = t.speedIndex ?? 2, this.loopMode = t.loopMode ?? "oneshot", this.isAutofit = t.isAutofit ?? !1, this.showEaseCurves = t.showEaseCurves ?? !1, this.playrangeStart = t.playrangeStart ?? 0, this.playrangeEnd = t.playrangeEnd ?? 1;
       }
     } catch {
     }
   }
   saveSettings() {
-    var t;
     try {
       const e = {
         height: this.height,
         collapsed: this.collapsed,
         speedIndex: this.speedIndex,
-        isLooping: this.isLooping,
-        isYoyo: this.isYoyo,
+        loopMode: this.loopMode,
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
-        selectedTimeline: (t = this.timelineSelect) == null ? void 0 : t.value,
+        selectedTimeline: this.selectedTimelineName,
         playrangeStart: this.playrangeStart,
         playrangeEnd: this.playrangeEnd
       };
-      localStorage.setItem(z, JSON.stringify(e));
+      localStorage.setItem(D, JSON.stringify(e));
     } catch {
     }
   }
   applyLoadedSettings() {
-    var t, e, i, a;
-    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (t = this.shadow.querySelector('[data-action="ease-curves"]')) == null || t.classList.add("active")), this.isAutofit && ((e = this.shadow.querySelector('[data-action="autofit"]')) == null || e.classList.add("active")), this.isLooping && ((i = this.loopBtn) == null || i.classList.add("active")), this.isYoyo && ((a = this.yoyoBtn) == null || a.classList.add("active")), this.speedBtn.textContent = `${L[this.speedIndex]}x`, this.container.style.height = `${this.height}px`, this.updatePlayrangeDisplay();
+    var e, t;
+    this.collapsed && this.container.classList.add("collapsed"), this.showEaseCurves && (this.container.classList.add("show-ease-curves"), (e = this.shadow.querySelector('[data-action="ease-curves"]')) == null || e.classList.add("active")), this.isAutofit && ((t = this.shadow.querySelector('[data-action="autofit"]')) == null || t.classList.add("active")), this.updateLoopIcon(), this.updateLoopMenuSelection(), this.updateSpeedDisplay(), this.container.style.height = `${this.height}px`, this.updatePlayrangeDisplay();
   }
   disconnectedCallback() {
     this.detachTimeline(), this.clearBodyPadding();
   }
-  setTimeline(t) {
-    this.detachTimeline(), this.timeline = t, U(), this.timelineData = O(t), t.eventCallback("onUpdate", () => this.onTimelineUpdate()), t.timeScale(L[this.speedIndex]), t.repeat(this.isLooping ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), this.updatePlayrangeDisplay(), requestAnimationFrame(() => this.applyAutofit());
+  setTimeline(e) {
+    this.detachTimeline(), this.timeline = e, K(), this.timelineData = F(e), e.eventCallback("onUpdate", () => this.onTimelineUpdate()), e.eventCallback("onComplete", () => this.updatePlayState()), e.eventCallback("onReverseComplete", () => this.updatePlayState()), e.timeScale(L[this.speedIndex]), e.repeat(this.loopMode === "loop" ? -1 : 0), this.renderTracks(), this.updatePlayhead(), this.updateTimeDisplay(), this.updatePlayState(), this.updatePlayrangeDisplay(), requestAnimationFrame(() => this.applyAutofit());
   }
   updateTimelineSelector() {
-    Promise.resolve().then(() => A).then(({ TimelineViewer: t }) => {
-      const e = t.getTimelines(), i = this.timelineSelect.value;
-      this.timelineSelect.innerHTML = "", e.forEach((a, n) => {
-        const l = document.createElement("option");
-        l.value = n, l.textContent = n, this.timelineSelect.appendChild(l);
-      }), i && e.has(i) && (this.timelineSelect.value = i);
+    Promise.resolve().then(() => A).then(({ TimelineViewer: e }) => {
+      const t = e.getTimelines();
+      this.timelineMenu.innerHTML = "", t.forEach((i, s) => {
+        const a = document.createElement("button");
+        a.className = "gtv-dropdown-item", a.dataset.timeline = s, a.innerHTML = `<span>${s}</span>`, a.addEventListener("click", (o) => {
+          o.stopPropagation(), this.selectTimeline(s), this.timelineMenu.hidePopover();
+        }), this.timelineMenu.appendChild(a);
+      }), this.updateTimelineDisplay();
     });
   }
-  setSelectedTimeline(t) {
-    this.timelineSelect.value = t, this.saveSettings();
+  selectTimeline(e) {
+    this.selectedTimelineName = e, this.updateTimelineDisplay(), e && Promise.resolve().then(() => A).then(({ TimelineViewer: t }) => {
+      var i;
+      (i = t.getInstance()) == null || i.select(e);
+    }), this.saveSettings();
+  }
+  updateTimelineDisplay() {
+    const e = this.timelineDropdown.querySelector(".gtv-timeline-value");
+    e.textContent = this.selectedTimelineName || "Select timeline", this.timelineMenu.querySelectorAll("[data-timeline]").forEach((t) => {
+      const i = t.dataset.timeline;
+      t.classList.toggle("selected", i === this.selectedTimelineName);
+    });
+  }
+  setSelectedTimeline(e) {
+    this.selectedTimelineName = e, this.updateTimelineDisplay(), this.saveSettings();
   }
   detachTimeline() {
-    this.timeline && (this.timeline.eventCallback("onUpdate", null), this.timeline = null, this.timelineData = null);
+    this.timeline && (this.timeline.eventCallback("onUpdate", null), this.timeline.eventCallback("onComplete", null), this.timeline.eventCallback("onReverseComplete", null), this.timeline = null, this.timelineData = null);
   }
   render() {
     this.shadow.innerHTML = `
-      <style>${F}</style>
+      <style>${U}</style>
       <div class="gtv-container ${this.collapsed ? "collapsed" : ""}" style="height: ${this.height}px;">
         <!-- Resize Handle (at top of container) -->
         <div class="gtv-resize-handle"></div>
@@ -223,36 +239,64 @@ class I extends HTMLElement {
         <!-- Controls Bar -->
         <div class="gtv-controls">
           <div class="gtv-controls-left">
-            <select class="gtv-timeline-select" title="Select timeline">
-              <option value="">No timeline</option>
-            </select>
-            <button class="gtv-btn" data-action="loop" title="Loop (L)">
-              <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-            </button>
-            <button class="gtv-btn" data-action="yoyo" title="Yoyo (Y)">
-              <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
-            </button>
-            <button class="gtv-btn gtv-speed-btn" data-action="speed" title="Playback speed">1x</button>
+            <div class="gtv-dropdown gtv-timeline-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger gtv-timeline-trigger" title="Select timeline">
+                <span class="gtv-timeline-value">Select timeline</span>
+                <svg class="gtv-dropdown-caret" viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+              </button>
+              <div class="gtv-dropdown-menu" id="timeline-menu" popover>
+              </div>
+            </div>
           </div>
 
           <div class="gtv-controls-center">
-            <span class="gtv-time-display">
-              <span class="gtv-time-current">0.00</span>
-              <span class="gtv-time-total"> / 0.00</span>
-            </span>
-            <button class="gtv-btn" data-action="skip-start" title="Skip to start">
+            <button class="gtv-btn" data-action="rewind" title="Rewind (R)">
               <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
             </button>
             <button class="gtv-btn gtv-btn-play" data-action="play" title="Play/Pause (Space)">
               <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               <svg class="pause-icon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-            <button class="gtv-btn" data-action="skip-end" title="Skip to end">
-              <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2 0V6l6.5 6L8 18zm8-12v12h2V6h-2z"/></svg>
-            </button>
+            <div class="gtv-dropdown gtv-loop-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger" title="Loop mode">
+                <svg class="icon-oneshot" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="icon-loop" viewBox="0 0 24 24" style="display: none;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                <svg class="icon-pingpong" viewBox="0 0 24 24" style="display: none;"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+              </button>
+              <div class="gtv-dropdown-menu" id="loop-menu" popover>
+                <button class="gtv-dropdown-item" data-loop="oneshot">
+                  <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>One Shot</span>
+                </button>
+                <button class="gtv-dropdown-item" data-loop="loop">
+                  <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                  <span>Loop</span>
+                </button>
+                <button class="gtv-dropdown-item" data-loop="pingpong">
+                  <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+                  <span>Ping Pong</span>
+                </button>
+              </div>
+            </div>
+            <div class="gtv-dropdown gtv-speed-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger gtv-speed-trigger" title="Playback speed">
+                <span class="gtv-speed-value">1x</span>
+              </button>
+              <div class="gtv-dropdown-menu" id="speed-menu" popover>
+                <button class="gtv-dropdown-item" data-speed="0.25"><span>0.25x</span></button>
+                <button class="gtv-dropdown-item" data-speed="0.5"><span>0.5x</span></button>
+                <button class="gtv-dropdown-item selected" data-speed="1"><span>1x</span></button>
+                <button class="gtv-dropdown-item" data-speed="2"><span>2x</span></button>
+                <button class="gtv-dropdown-item" data-speed="4"><span>4x</span></button>
+              </div>
+            </div>
           </div>
 
           <div class="gtv-controls-right">
+            <span class="gtv-time-display">
+              <span class="gtv-time-current">0.00</span>
+              <span class="gtv-time-total"> / 0.00</span>
+            </span>
             <button class="gtv-btn" data-action="ease-curves" title="Show ease curves">
               <svg viewBox="0 0 24 24"><path d="M3 17c0 0 3-8 9-8s9 8 9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
@@ -271,6 +315,8 @@ class I extends HTMLElement {
             <div class="gtv-playrange-inactive-left"></div>
             <div class="gtv-playrange-active"></div>
             <div class="gtv-playrange-inactive-right"></div>
+            <div class="gtv-playrange-fill"></div>
+            <div class="gtv-playrange-scrubber"></div>
           </div>
           <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
           <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
@@ -300,30 +346,18 @@ class I extends HTMLElement {
           </div>
         </div>
       </div>
-    `, this.container = this.shadow.querySelector(".gtv-container"), this.playBtn = this.shadow.querySelector('[data-action="play"]'), this.loopBtn = this.shadow.querySelector('[data-action="loop"]'), this.yoyoBtn = this.shadow.querySelector('[data-action="yoyo"]'), this.speedBtn = this.shadow.querySelector('[data-action="speed"]'), this.timeDisplay = this.shadow.querySelector(".gtv-time-display"), this.rulerInner = this.shadow.querySelector(".gtv-ruler-inner"), this.tracksScroll = this.shadow.querySelector(".gtv-tracks-scroll"), this.playhead = this.shadow.querySelector(".gtv-playhead"), this.scrubArea = this.shadow.querySelector(".gtv-scrub-area"), this.resizeHandle = this.shadow.querySelector(".gtv-resize-handle"), this.timelineSelect = this.shadow.querySelector(".gtv-timeline-select");
+    `, this.container = this.shadow.querySelector(".gtv-container"), this.playBtn = this.shadow.querySelector('[data-action="play"]'), this.loopDropdown = this.shadow.querySelector(".gtv-loop-dropdown"), this.loopMenu = this.shadow.querySelector("#loop-menu"), this.speedDropdown = this.shadow.querySelector(".gtv-speed-dropdown"), this.speedMenu = this.shadow.querySelector("#speed-menu"), this.timelineDropdown = this.shadow.querySelector(".gtv-timeline-dropdown"), this.timelineMenu = this.shadow.querySelector("#timeline-menu"), this.timeDisplay = this.shadow.querySelector(".gtv-time-display"), this.rulerInner = this.shadow.querySelector(".gtv-ruler-inner"), this.tracksScroll = this.shadow.querySelector(".gtv-tracks-scroll"), this.playhead = this.shadow.querySelector(".gtv-playhead"), this.scrubArea = this.shadow.querySelector(".gtv-scrub-area"), this.resizeHandle = this.shadow.querySelector(".gtv-resize-handle");
   }
   setupEventListeners() {
-    this.shadow.addEventListener("click", (t) => {
-      const i = t.target.closest("[data-action]");
-      if (!i) return;
-      switch (i.dataset.action) {
+    this.shadow.addEventListener("click", (n) => {
+      const p = n.target.closest("[data-action]");
+      if (!p) return;
+      switch (p.dataset.action) {
         case "play":
           this.togglePlay();
           break;
-        case "skip-start":
-          this.skipToStart();
-          break;
-        case "skip-end":
-          this.skipToEnd();
-          break;
-        case "loop":
-          this.toggleLoop();
-          break;
-        case "yoyo":
-          this.toggleYoyo();
-          break;
-        case "speed":
-          this.cycleSpeed();
+        case "rewind":
+          this.playReverse();
           break;
         case "collapse":
           this.toggleCollapse();
@@ -335,179 +369,255 @@ class I extends HTMLElement {
           this.toggleEaseCurves();
           break;
       }
-      i.blur();
-    }), this.timelineSelect.addEventListener("change", () => {
-      const t = this.timelineSelect.value;
-      t && Promise.resolve().then(() => A).then(({ TimelineViewer: e }) => {
-        var i;
-        (i = e.getInstance()) == null || i.select(t);
+      p.blur();
+    });
+    const e = this.loopDropdown.querySelector(".gtv-dropdown-trigger");
+    let t = !1;
+    e.addEventListener("mousedown", () => {
+      t = this.loopMenu.matches(":popover-open");
+    }), e.addEventListener("click", (n) => {
+      n.stopPropagation(), this.speedMenu.hidePopover(), this.timelineMenu.hidePopover(), t || this.loopMenu.showPopover();
+    }), this.loopMenu.addEventListener("toggle", (n) => {
+      n.newState === "open" ? this.positionPopover(this.loopMenu, e) : e.blur();
+    });
+    const i = this.speedDropdown.querySelector(".gtv-dropdown-trigger");
+    let s = !1;
+    i.addEventListener("mousedown", () => {
+      s = this.speedMenu.matches(":popover-open");
+    }), i.addEventListener("click", (n) => {
+      n.stopPropagation(), this.loopMenu.hidePopover(), this.timelineMenu.hidePopover(), s || this.speedMenu.showPopover();
+    }), this.speedMenu.addEventListener("toggle", (n) => {
+      n.newState === "open" ? this.positionPopover(this.speedMenu, i) : i.blur();
+    }), this.speedMenu.querySelectorAll("[data-speed]").forEach((n) => {
+      n.addEventListener("click", (g) => {
+        g.stopPropagation();
+        const p = parseFloat(n.dataset.speed);
+        this.setSpeed(p), this.speedMenu.hidePopover();
       });
-    }), this.shadow.addEventListener("click", (t) => {
-      const i = t.target.closest(".gtv-track-bar");
-      if (i) {
-        const a = i.closest(".gtv-track");
-        (a == null ? void 0 : a.dataset.expandable) === "true" && (t.stopPropagation(), a.classList.toggle("expanded"), requestAnimationFrame(() => this.applyAutofit()));
+    });
+    const a = this.timelineDropdown.querySelector(".gtv-dropdown-trigger");
+    let o = !1;
+    a.addEventListener("mousedown", () => {
+      o = this.timelineMenu.matches(":popover-open");
+    }), a.addEventListener("click", (n) => {
+      n.stopPropagation(), this.loopMenu.hidePopover(), this.speedMenu.hidePopover(), o || this.timelineMenu.showPopover();
+    }), this.timelineMenu.addEventListener("toggle", (n) => {
+      n.newState === "open" ? this.positionPopover(this.timelineMenu, a) : a.blur();
+    }), this.loopMenu.querySelectorAll("[data-loop]").forEach((n) => {
+      n.addEventListener("click", (g) => {
+        g.stopPropagation();
+        const p = n.dataset.loop;
+        this.setLoopMode(p), this.loopMenu.hidePopover();
+      });
+    }), this.shadow.addEventListener("click", (n) => {
+      const p = n.target.closest(".gtv-track-bar");
+      if (p) {
+        const h = p.closest(".gtv-track");
+        (h == null ? void 0 : h.dataset.expandable) === "true" && (n.stopPropagation(), h.classList.toggle("expanded"), requestAnimationFrame(() => this.applyAutofit()));
       }
-    }), this.scrubArea.addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-ruler").addEventListener("mousedown", (t) => this.startScrub(t)), this.shadow.querySelector(".gtv-tracks-container").addEventListener("mousedown", (t) => {
-      t.target.closest(".gtv-track-bar") || this.startScrub(t);
-    }), document.addEventListener("mousemove", (t) => {
-      this.onScrub(t), this.onResize(t), this.onPlayrangeDrag(t);
+    }), this.scrubArea.addEventListener("mousedown", (n) => this.startScrub(n)), this.shadow.querySelector(".gtv-ruler").addEventListener("mousedown", (n) => this.startScrub(n)), this.shadow.querySelector(".gtv-tracks-container").addEventListener("mousedown", (n) => {
+      n.target.closest(".gtv-track-bar") || this.startScrub(n);
+    }), document.addEventListener("mousemove", (n) => {
+      this.onScrub(n), this.onResize(n), this.onPlayrangeDrag(n), this.onScrubberDrag(n);
     }), document.addEventListener("mouseup", () => {
-      this.endScrub(), this.endResize(), this.endPlayrangeDrag();
-    }), this.resizeHandle.addEventListener("mousedown", (t) => this.startResize(t)), this.shadow.querySelectorAll(".gtv-playrange-handle").forEach((t) => {
-      t.addEventListener("mousedown", (e) => this.startPlayrangeDrag(e));
-    }), document.addEventListener("keydown", (t) => {
-      if (t.target === document.body)
-        switch (t.code) {
+      this.endScrub(), this.endResize(), this.endPlayrangeDrag(), this.endScrubberDrag();
+    }), this.resizeHandle.addEventListener("mousedown", (n) => this.startResize(n)), this.shadow.querySelectorAll(".gtv-playrange-handle").forEach((n) => {
+      n.addEventListener("mousedown", (g) => this.startPlayrangeDrag(g));
+    });
+    const l = this.shadow.querySelector(".gtv-playrange-scrubber");
+    l && l.addEventListener("mousedown", (n) => this.startScrubberDrag(n)), document.addEventListener("keydown", (n) => {
+      if (n.target === document.body)
+        switch (n.code) {
           case "Space":
-            t.preventDefault(), this.togglePlay();
+            n.preventDefault(), this.togglePlay();
             break;
           case "KeyJ":
-            t.preventDefault(), this.jumpToPrevPoint();
+            n.preventDefault(), this.jumpToPrevPoint();
             break;
           case "KeyK":
-            t.preventDefault(), this.jumpToNextPoint();
+            n.preventDefault(), this.jumpToNextPoint();
+            break;
+          case "KeyR":
+            n.preventDefault(), this.playReverse();
+            break;
+          case "KeyO":
+            n.preventDefault(), this.setLoopMode("oneshot");
             break;
           case "KeyL":
-            t.preventDefault(), this.toggleLoop();
+            n.preventDefault(), this.setLoopMode("loop");
             break;
-          case "KeyY":
-            t.preventDefault(), this.toggleYoyo();
+          case "KeyP":
+            n.preventDefault(), this.setLoopMode("pingpong");
             break;
           case "BracketLeft":
-            t.preventDefault(), this.setPlayrangeStart();
+            n.preventDefault(), this.setPlayrangeStart();
             break;
           case "BracketRight":
-            t.preventDefault(), this.setPlayrangeEnd();
+            n.preventDefault(), this.setPlayrangeEnd();
             break;
           case "Backslash":
-            t.preventDefault(), this.resetPlayrange();
+            n.preventDefault(), this.resetPlayrange();
             break;
         }
     });
   }
-  startScrub(t) {
-    this.timeline && (t.preventDefault(), this.isDragging = !0, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none", this.scrubToPosition(t));
+  startScrub(e) {
+    this.timeline && (e.preventDefault(), this.isDragging = !0, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none", this.scrubToPosition(e));
   }
-  onScrub(t) {
-    !this.isDragging || !this.timeline || this.scrubToPosition(t);
+  onScrub(e) {
+    !this.isDragging || !this.timeline || this.scrubToPosition(e);
   }
   endScrub() {
     this.isDragging = !1, document.body.style.cursor = "", document.body.style.userSelect = "";
   }
-  startResize(t) {
-    t.preventDefault(), this.isResizing = !0, document.body.style.cursor = "ns-resize", document.body.style.userSelect = "none";
+  startResize(e) {
+    e.preventDefault(), this.isResizing = !0, document.body.style.cursor = "ns-resize", document.body.style.userSelect = "none";
   }
-  onResize(t) {
+  onResize(e) {
     if (!this.isResizing) return;
-    const e = window.innerHeight, i = e - t.clientY;
-    this.height = Math.max(100, Math.min(i, e - 100)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    const t = window.innerHeight, i = t - e.clientY;
+    this.height = Math.max(100, Math.min(i, t - 100)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   endResize() {
     this.isResizing && (this.isResizing = !1, document.body.style.cursor = "", document.body.style.userSelect = "", this.saveSettings());
   }
-  startPlayrangeDrag(t) {
-    t.preventDefault(), t.stopPropagation();
-    const e = t.target.closest(".gtv-playrange-handle");
-    e && (this.draggingPlayrange = e.dataset.handle, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none");
+  startPlayrangeDrag(e) {
+    e.preventDefault(), e.stopPropagation();
+    const t = e.target.closest(".gtv-playrange-handle");
+    t && (this.draggingPlayrange = t.dataset.handle, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none");
   }
-  onPlayrangeDrag(t) {
+  onPlayrangeDrag(e) {
     if (!this.draggingPlayrange) return;
-    const e = this.shadow.querySelector(".gtv-playrange-track");
-    if (!e) return;
-    const i = e.getBoundingClientRect(), n = Math.max(0, Math.min(t.clientX - i.left, i.width)) / i.width;
-    this.draggingPlayrange === "start" ? this.playrangeStart = Math.min(n, this.playrangeEnd - 0.01) : this.playrangeEnd = Math.max(n, this.playrangeStart + 0.01), this.updatePlayrangeDisplay();
+    const t = this.shadow.querySelector(".gtv-playrange-track");
+    if (!t) return;
+    const i = t.getBoundingClientRect(), a = Math.max(0, Math.min(e.clientX - i.left, i.width)) / i.width;
+    this.draggingPlayrange === "start" ? this.playrangeStart = Math.min(a, this.playrangeEnd - 0.01) : this.playrangeEnd = Math.max(a, this.playrangeStart + 0.01), this.updatePlayrangeDisplay();
   }
   endPlayrangeDrag() {
     this.draggingPlayrange && (this.draggingPlayrange = null, document.body.style.cursor = "", document.body.style.userSelect = "", this.saveSettings());
   }
+  startScrubberDrag(e) {
+    this.timeline && (e.preventDefault(), e.stopPropagation(), this.draggingScrubber = !0, document.body.style.cursor = "ew-resize", document.body.style.userSelect = "none", this.onScrubberDrag(e));
+  }
+  onScrubberDrag(e) {
+    if (!this.draggingScrubber || !this.timeline) return;
+    const t = this.shadow.querySelector(".gtv-playrange-track");
+    if (!t) return;
+    const i = t.getBoundingClientRect();
+    let a = Math.max(0, Math.min(e.clientX - i.left, i.width)) / i.width;
+    a = Math.max(this.playrangeStart, Math.min(a, this.playrangeEnd)), this.timeline.progress(a), this.timeline.pause(), this.updatePlayState();
+  }
+  endScrubberDrag() {
+    this.draggingScrubber && (this.draggingScrubber = !1, document.body.style.cursor = "", document.body.style.userSelect = "");
+  }
   updatePlayrangeDisplay() {
-    const t = this.shadow.querySelector(".gtv-playrange-track"), e = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), a = this.shadow.querySelector(".gtv-playrange-active"), n = this.shadow.querySelector(".gtv-playrange-inactive-left"), l = this.shadow.querySelector(".gtv-playrange-inactive-right");
-    if (t && e && i && a && n && l) {
-      const r = this.playrangeStart * 100, h = this.playrangeEnd * 100, p = t.offsetLeft, v = t.offsetWidth;
-      e.style.left = `${p + this.playrangeStart * v}px`, i.style.left = `${p + this.playrangeEnd * v}px`, a.style.left = `${r}%`, a.style.width = `${h - r}%`, n.style.width = `${r}%`, l.style.width = `${100 - h}%`;
+    const e = this.shadow.querySelector(".gtv-playrange-track"), t = this.shadow.querySelector(".gtv-playrange-handle-start"), i = this.shadow.querySelector(".gtv-playrange-handle-end"), s = this.shadow.querySelector(".gtv-playrange-active"), a = this.shadow.querySelector(".gtv-playrange-inactive-left"), o = this.shadow.querySelector(".gtv-playrange-inactive-right");
+    if (e && t && i && s && a && o) {
+      const l = this.playrangeStart * 100, n = this.playrangeEnd * 100, g = e.offsetLeft, p = e.offsetWidth;
+      t.style.left = `${g + this.playrangeStart * p}px`, i.style.left = `${g + this.playrangeEnd * p}px`, s.style.left = `${l}%`, s.style.width = `${n - l}%`, a.style.width = `${l}%`, o.style.width = `${100 - n}%`;
     }
   }
   setPlayrangeStart() {
     if (!this.timeline) return;
-    const t = this.timeline.progress();
-    Math.abs(t - this.playrangeStart) < 1e-3 ? this.playrangeStart = 0 : this.playrangeStart = Math.min(t, this.playrangeEnd - 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
+    const e = this.timeline.progress();
+    Math.abs(e - this.playrangeStart) < 1e-3 ? this.playrangeStart = 0 : this.playrangeStart = Math.min(e, this.playrangeEnd - 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
   }
   setPlayrangeEnd() {
     if (!this.timeline) return;
-    const t = this.timeline.progress();
-    Math.abs(t - this.playrangeEnd) < 1e-3 ? this.playrangeEnd = 1 : this.playrangeEnd = Math.max(t, this.playrangeStart + 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
+    const e = this.timeline.progress();
+    Math.abs(e - this.playrangeEnd) < 1e-3 ? this.playrangeEnd = 1 : this.playrangeEnd = Math.max(e, this.playrangeStart + 0.01), this.updatePlayrangeDisplay(), this.saveSettings();
   }
   resetPlayrange() {
     this.playrangeStart = 0, this.playrangeEnd = 1, this.updatePlayrangeDisplay(), this.saveSettings();
   }
   updateBodyPadding() {
     if (!this.manageBodyPadding) return;
-    const t = this.collapsed ? C : this.height;
-    document.body.style.paddingBottom = `${t}px`;
+    const e = this.collapsed ? $ : this.height;
+    document.body.style.paddingBottom = `${e}px`;
   }
   clearBodyPadding() {
     this.manageBodyPadding && (document.body.style.paddingBottom = "");
   }
-  scrubToPosition(t) {
+  scrubToPosition(e) {
     if (!this.timeline || !this.timelineData) return;
-    const e = this.rulerInner.getBoundingClientRect(), a = Math.max(0, Math.min(t.clientX - e.left, e.width)) / e.width;
-    this.timeline.progress(a), this.timeline.pause(), this.updatePlayState();
+    const t = this.rulerInner.getBoundingClientRect(), s = Math.max(0, Math.min(e.clientX - t.left, t.width)) / t.width;
+    this.timeline.progress(s), this.timeline.pause(), this.updatePlayState();
   }
   togglePlay() {
-    this.timeline && (this.timeline.paused() || this.timeline.progress() === 1 ? this.timeline.progress() === 1 ? this.timeline.restart() : this.timeline.play() : this.timeline.pause(), this.updatePlayState());
+    if (!this.timeline) return;
+    const e = this.timeline.progress(), t = e <= this.playrangeStart, i = e >= this.playrangeEnd;
+    this.timeline.paused() || i || t ? i && !this.timeline.reversed() ? (this.timeline.progress(this.playrangeStart), this.timeline.play()) : t && this.timeline.reversed() ? (this.timeline.reversed(!1), this.timeline.play()) : this.timeline.play() : this.timeline.pause(), this.updatePlayState();
   }
-  skipToStart() {
-    this.timeline && (this.timeline.progress(0), this.timeline.pause(), this.updatePlayState());
-  }
-  skipToEnd() {
-    this.timeline && (this.timeline.progress(1), this.timeline.pause(), this.updatePlayState());
+  playReverse() {
+    this.timeline && (this.timeline.progress() === 0 && this.timeline.progress(1), this.timeline.reverse(), this.updatePlayState());
   }
   getTimePoints() {
     if (!this.timelineData) return [0];
-    const t = /* @__PURE__ */ new Set();
-    return t.add(0), t.add(Math.round(this.timelineData.duration * 1e3) / 1e3), this.timelineData.tweens.forEach((e) => {
-      t.add(Math.round(e.startTime * 1e3) / 1e3), t.add(Math.round(e.endTime * 1e3) / 1e3);
-    }), Array.from(t).sort((e, i) => e - i);
+    const e = /* @__PURE__ */ new Set();
+    return e.add(0), e.add(Math.round(this.timelineData.duration * 1e3) / 1e3), this.timelineData.tweens.forEach((t) => {
+      e.add(Math.round(t.startTime * 1e3) / 1e3), e.add(Math.round(t.endTime * 1e3) / 1e3);
+    }), Array.from(e).sort((t, i) => t - i);
   }
   jumpToPrevPoint() {
     if (!this.timeline || !this.timelineData) return;
-    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints(), i = this.playrangeStart * this.timelineData.duration;
-    let a = i;
-    for (const n of e)
-      if (n < t - 1e-3 && n >= i)
-        a = n;
-      else if (n >= t)
+    const e = Math.round(this.timeline.time() * 1e3) / 1e3, t = this.getTimePoints(), i = this.playrangeStart * this.timelineData.duration;
+    let s = i;
+    for (const a of t)
+      if (a < e - 1e-3 && a >= i)
+        s = a;
+      else if (a >= e)
         break;
-    this.timeline.time(Math.max(a, i)), this.timeline.pause(), this.updatePlayState();
+    this.timeline.time(Math.max(s, i)), this.timeline.pause(), this.updatePlayState();
   }
   jumpToNextPoint() {
     if (!this.timeline || !this.timelineData) return;
-    const t = Math.round(this.timeline.time() * 1e3) / 1e3, e = this.getTimePoints(), i = this.playrangeEnd * this.timelineData.duration;
-    let a = i;
-    for (const n of e)
-      if (n > t + 1e-3 && n <= i) {
-        a = n;
+    const e = Math.round(this.timeline.time() * 1e3) / 1e3, t = this.getTimePoints(), i = this.playrangeEnd * this.timelineData.duration;
+    let s = i;
+    for (const a of t)
+      if (a > e + 1e-3 && a <= i) {
+        s = a;
         break;
       }
-    this.timeline.time(Math.min(a, i)), this.timeline.pause(), this.updatePlayState();
+    this.timeline.time(Math.min(s, i)), this.timeline.pause(), this.updatePlayState();
   }
-  toggleLoop() {
-    this.timeline && (this.isLooping = !this.isLooping, this.timeline.repeat(this.isLooping ? -1 : 0), this.loopBtn.classList.toggle("active", this.isLooping), this.isLooping && this.isYoyo && (this.isYoyo = !1, this.yoyoBtn.classList.remove("active")), this.saveSettings());
+  positionPopover(e, t) {
+    const i = t.getBoundingClientRect(), s = e.getBoundingClientRect(), a = i.left + i.width / 2 - s.width / 2;
+    let o;
+    this.collapsed ? o = i.top - s.height - 4 : o = i.bottom + 4, e.style.position = "fixed", e.style.left = `${a}px`, e.style.top = `${o}px`, e.style.margin = "0";
   }
-  toggleYoyo() {
-    this.timeline && (this.isYoyo = !this.isYoyo, this.yoyoBtn.classList.toggle("active", this.isYoyo), this.isYoyo && this.isLooping && (this.isLooping = !1, this.timeline.repeat(0), this.loopBtn.classList.remove("active")), this.saveSettings());
+  setLoopMode(e) {
+    this.loopMode = e, this.updateLoopIcon(), this.updateLoopMenuSelection(), this.timeline && this.timeline.repeat(this.loopMode === "loop" ? -1 : 0), this.saveSettings();
   }
-  cycleSpeed() {
-    if (!this.timeline) return;
-    this.speedIndex = (this.speedIndex + 1) % L.length;
-    const t = L[this.speedIndex];
-    this.timeline.timeScale(t), this.speedBtn.textContent = `${t}x`, this.saveSettings();
+  updateLoopIcon() {
+    const e = this.loopDropdown.querySelector(".gtv-dropdown-trigger"), t = e.querySelector(".icon-oneshot"), i = e.querySelector(".icon-loop"), s = e.querySelector(".icon-pingpong");
+    t.style.display = this.loopMode === "oneshot" ? "block" : "none", i.style.display = this.loopMode === "loop" ? "block" : "none", s.style.display = this.loopMode === "pingpong" ? "block" : "none";
+    const a = {
+      oneshot: "One Shot",
+      loop: "Loop",
+      pingpong: "Ping Pong"
+    };
+    e.setAttribute("title", a[this.loopMode]);
+  }
+  updateLoopMenuSelection() {
+    this.loopDropdown.querySelectorAll("[data-loop]").forEach((e) => {
+      const t = e.dataset.loop;
+      e.classList.toggle("selected", t === this.loopMode);
+    });
+  }
+  setSpeed(e) {
+    this.speedIndex = L.indexOf(e), this.timeline && this.timeline.timeScale(e), this.updateSpeedDisplay(), this.saveSettings();
+  }
+  updateSpeedDisplay() {
+    const e = L[this.speedIndex], t = this.speedDropdown.querySelector(".gtv-speed-value");
+    t.textContent = `${e}x`, this.speedMenu.querySelectorAll("[data-speed]").forEach((i) => {
+      const s = parseFloat(i.dataset.speed);
+      i.classList.toggle("selected", s === e);
+    });
   }
   toggleCollapse() {
     this.collapsed = !this.collapsed, this.container.classList.toggle("collapsed", this.collapsed);
-    const t = this.shadow.querySelector('[data-action="collapse"]');
-    t.innerHTML = this.collapsed ? '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>', this.updateBodyPadding(), this.saveSettings();
+    const e = this.shadow.querySelector('[data-action="collapse"]');
+    e.innerHTML = this.collapsed ? '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>', this.updateBodyPadding(), this.saveSettings();
   }
   toggleAutofit() {
     this.isAutofit = !this.isAutofit, this.shadow.querySelector('[data-action="autofit"]').classList.toggle("active", this.isAutofit), this.isAutofit && this.applyAutofit(), this.saveSettings();
@@ -517,105 +627,112 @@ class I extends HTMLElement {
   }
   applyAutofit() {
     if (!this.isAutofit || this.collapsed) return;
-    const t = this.shadow.querySelectorAll(".gtv-track");
-    let e = 0;
-    const i = 36, a = 30;
-    t.forEach((p) => {
-      if (e += i, p.classList.contains("expanded")) {
-        const v = p.querySelectorAll(".gtv-stagger-child");
-        e += v.length * a;
+    const e = this.shadow.querySelectorAll(".gtv-track");
+    let t = 0;
+    const i = 36, s = 30;
+    e.forEach((g) => {
+      if (t += i, g.classList.contains("expanded")) {
+        const p = g.querySelectorAll(".gtv-stagger-child");
+        t += p.length * s;
       }
     });
-    const n = 24, l = 16, r = 100, h = window.innerHeight - 100;
-    this.height = Math.max(r, Math.min(C + n + e + l, h)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
+    const a = 24, o = 16, l = 100, n = window.innerHeight - 100;
+    this.height = Math.max(l, Math.min($ + a + t + o, n)), this.container.style.height = `${this.height}px`, this.updateBodyPadding();
   }
   updatePlayState() {
     if (!this.timeline) return;
-    this.isPlaying = !this.timeline.paused() && this.timeline.progress() < 1;
-    const t = this.playBtn.querySelector(".play-icon"), e = this.playBtn.querySelector(".pause-icon");
-    t.style.display = this.isPlaying ? "none" : "block", e.style.display = this.isPlaying ? "block" : "none";
+    const e = this.timeline.progress(), t = e >= this.playrangeEnd, i = e <= this.playrangeStart;
+    this.isPlaying = !this.timeline.paused() && !(t && !this.timeline.reversed()) && !(i && this.timeline.reversed());
+    const s = this.playBtn.querySelector(".play-icon"), a = this.playBtn.querySelector(".pause-icon");
+    s.style.display = this.isPlaying ? "none" : "block", a.style.display = this.isPlaying ? "block" : "none";
   }
   onTimelineUpdate() {
     this.updatePlayhead(), this.updateTimeDisplay(), this.updateActiveTracks(), this.updatePlayState(), this.checkPlayrangeConstraint();
   }
   checkPlayrangeConstraint() {
     if (!this.timeline || this.timeline.paused()) return;
-    const t = this.timeline.progress();
-    if (this.isYoyo) {
-      t >= this.playrangeEnd && !this.timeline.reversed() ? this.timeline.reverse() : t <= this.playrangeStart && this.timeline.reversed() && this.timeline.play();
+    const e = this.timeline.progress();
+    if (this.loopMode === "pingpong") {
+      e >= this.playrangeEnd && !this.timeline.reversed() ? this.timeline.reverse() : e <= this.playrangeStart && this.timeline.reversed() && (this.timeline.reversed(!1), this.timeline.play());
       return;
     }
-    this.playrangeStart === 0 && this.playrangeEnd === 1 || (t >= this.playrangeEnd ? this.isLooping ? this.timeline.progress(this.playrangeStart) : (this.timeline.progress(this.playrangeEnd), this.timeline.pause(), this.updatePlayState()) : t < this.playrangeStart && this.timeline.progress(this.playrangeStart));
+    this.playrangeStart === 0 && this.playrangeEnd === 1 || (e >= this.playrangeEnd ? this.loopMode === "loop" ? this.timeline.progress(this.playrangeStart) : (this.timeline.progress(this.playrangeEnd), this.timeline.pause(), this.updatePlayState()) : e < this.playrangeStart && this.timeline.progress(this.playrangeStart));
   }
   updatePlayhead() {
     if (!this.timeline || !this.timelineData) return;
-    const t = this.timeline.progress();
-    this.playhead.style.left = `${t * 100}%`;
+    const e = this.timeline.progress();
+    this.playhead.style.left = `${e * 100}%`;
+    const t = this.shadow.querySelector(".gtv-playrange-fill"), i = this.shadow.querySelector(".gtv-playrange-scrubber");
+    if (t) {
+      const s = this.playrangeStart * 100, a = e * 100;
+      t.style.left = `${s}%`, t.style.width = `${Math.max(0, a - s)}%`;
+    }
+    i && (i.style.left = `${e * 100}%`);
   }
   updateTimeDisplay() {
     if (!this.timeline || !this.timelineData) return;
-    const t = this.timeline.time(), e = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), a = this.timeDisplay.querySelector(".gtv-time-total");
-    i.textContent = S(t), a.textContent = ` / ${S(e)}`;
+    const e = this.timeline.time(), t = this.timelineData.duration, i = this.timeDisplay.querySelector(".gtv-time-current"), s = this.timeDisplay.querySelector(".gtv-time-total");
+    i.textContent = S(e), s.textContent = ` / ${S(t)}`;
   }
   updateActiveTracks() {
     if (!this.timeline || !this.timelineData) return;
-    const t = this.timeline.time();
-    this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, a) => {
-      const n = this.timelineData.tweens[a], l = t >= n.startTime && t <= n.endTime, r = i.dataset.color;
-      l ? i.style.background = `var(--gtv-track-${r}-active)` : i.style.background = `var(--gtv-track-${r})`;
+    const e = this.timeline.time();
+    this.tracksScroll.querySelectorAll(".gtv-track-bar").forEach((i, s) => {
+      const a = this.timelineData.tweens[s], o = e >= a.startTime && e <= a.endTime, l = i.dataset.color;
+      o ? i.style.background = `var(--gtv-track-${l}-active)` : i.style.background = `var(--gtv-track-${l})`;
     });
   }
   renderTracks() {
     if (!this.timelineData) return;
-    const { duration: t, tweens: e } = this.timelineData, i = this.shadow.querySelector(".gtv-empty");
-    i.style.display = e.length > 0 ? "none" : "flex", this.renderRuler(t);
-    const a = this.renderGridLines(t), n = e.map((r) => this.renderTrack(r, t)).join(""), l = this.tracksScroll.querySelector(".gtv-scrub-area");
-    this.tracksScroll.innerHTML = a + n, this.tracksScroll.prepend(l), this.scrubArea = l;
+    const { duration: e, tweens: t } = this.timelineData, i = this.shadow.querySelector(".gtv-empty");
+    i.style.display = t.length > 0 ? "none" : "flex", this.renderRuler(e);
+    const s = this.renderGridLines(e), a = t.map((l) => this.renderTrack(l, e)).join(""), o = this.tracksScroll.querySelector(".gtv-scrub-area");
+    this.tracksScroll.innerHTML = s + a, this.tracksScroll.prepend(o), this.scrubArea = o;
   }
-  renderGridLines(t) {
-    const e = [], i = this.calculateInterval(t);
-    for (let a = 0; a <= t; a += i) {
-      const n = a / t * 100;
-      e.push(`<div class="gtv-grid-line" style="left: ${n}%;"></div>`);
+  renderGridLines(e) {
+    const t = [], i = this.calculateInterval(e);
+    for (let s = 0; s <= e; s += i) {
+      const a = s / e * 100;
+      t.push(`<div class="gtv-grid-line" style="left: ${a}%;"></div>`);
     }
-    return e.join("");
+    return t.join("");
   }
-  renderRuler(t) {
-    const e = [], i = this.calculateInterval(t);
-    for (let a = 0; a <= t; a += i) {
-      const n = a / t * 100;
-      e.push(`
-        <div class="gtv-ruler-marker" style="left: ${n}%;">
+  renderRuler(e) {
+    const t = [], i = this.calculateInterval(e);
+    for (let s = 0; s <= e; s += i) {
+      const a = s / e * 100;
+      t.push(`
+        <div class="gtv-ruler-marker" style="left: ${a}%;">
           <div class="gtv-ruler-marker-line"></div>
-          <span class="gtv-ruler-marker-label">${S(a, !1)}s</span>
+          <span class="gtv-ruler-marker-label">${S(s, !1)}s</span>
         </div>
       `);
     }
-    this.rulerInner.innerHTML = e.join(""), this.renderLabelLines(t);
+    this.rulerInner.innerHTML = t.join(""), this.renderLabelLines(e);
   }
-  renderLabelLines(t) {
-    var n, l;
-    const e = this.shadow.querySelector(".gtv-labels-wrapper");
-    if (e && e.remove(), !((l = (n = this.timelineData) == null ? void 0 : n.labels) != null && l.length)) return;
+  renderLabelLines(e) {
+    var a, o;
+    const t = this.shadow.querySelector(".gtv-labels-wrapper");
+    if (t && t.remove(), !((o = (a = this.timelineData) == null ? void 0 : a.labels) != null && o.length)) return;
     const i = this.shadow.querySelector(".gtv-timeline-area");
     if (!i) return;
-    const a = document.createElement("div");
-    a.className = "gtv-labels-wrapper";
-    for (const r of this.timelineData.labels) {
-      const h = r.time / t * 100, v = (h < 10 ? "right" : "left") === "left" ? "translateX(-100%) translateX(-4px)" : "translateX(4px)", u = document.createElement("div");
-      u.className = "gtv-label-line", u.style.left = `${h}%`, u.innerHTML = `<span class="gtv-label-line-text" style="transform: ${v};">${r.name}</span>`, a.appendChild(u);
+    const s = document.createElement("div");
+    s.className = "gtv-labels-wrapper";
+    for (const l of this.timelineData.labels) {
+      const n = l.time / e * 100, p = (n < 10 ? "right" : "left") === "left" ? "translateX(-100%) translateX(-4px)" : "translateX(4px)", h = document.createElement("div");
+      h.className = "gtv-label-line", h.style.left = `${n}%`, h.innerHTML = `<span class="gtv-label-line-text" style="transform: ${p};">${l.name}</span>`, s.appendChild(h);
     }
-    i.appendChild(a);
+    i.appendChild(s);
   }
-  calculateInterval(t) {
-    return t <= 1 ? 0.25 : t <= 3 ? 0.5 : t <= 10 ? 1 : t <= 30 ? 5 : 10;
+  calculateInterval(e) {
+    return e <= 1 ? 0.25 : e <= 3 ? 0.5 : e <= 10 ? 1 : e <= 30 ? 5 : 10;
   }
-  renderEaseCurve(t) {
-    if (!(t != null && t.length)) return "";
-    const e = Math.min(...t), i = Math.max(...t), a = Math.min(0, e), n = Math.max(1, i), l = n - a || 1, r = 5, h = 100 - r * 2, p = t.map((x, P) => {
-      const R = P / (t.length - 1) * 100, Y = r + (n - x) / l * h;
-      return { x: R, y: Y };
-    }), v = p.map((x) => `${x.x},${x.y}`).join(" L"), u = r + (n - 0) / l * h, b = `M0,${u} L${v} L100,${u} Z`, d = `M${p.map((x) => `${x.x},${x.y}`).join(" L")}`, m = Math.random().toString(36).substr(2, 9), f = `ease-grad-${m}`, k = `ease-clip-${m}`;
+  renderEaseCurve(e) {
+    if (!(e != null && e.length)) return "";
+    const t = Math.min(...e), i = Math.max(...e), s = Math.min(0, t), a = Math.max(1, i), o = a - s || 1, l = 5, n = 100 - l * 2, g = e.map((m, k) => {
+      const R = k / (e.length - 1) * 100, N = l + (a - m) / o * n;
+      return { x: R, y: N };
+    }), p = g.map((m) => `${m.x},${m.y}`).join(" L"), h = l + (a - 0) / o * n, w = `M0,${h} L${p} L100,${h} Z`, u = `M${g.map((m) => `${m.x},${m.y}`).join(" L")}`, b = Math.random().toString(36).substr(2, 9), f = `ease-grad-${b}`, x = `ease-clip-${b}`;
     return `
       <svg class="gtv-ease-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
         <defs>
@@ -623,130 +740,130 @@ class I extends HTMLElement {
             <stop offset="0%" stop-color="var(--track-color)" stop-opacity="0.8" />
             <stop offset="100%" stop-color="var(--track-color)" stop-opacity="0" />
           </linearGradient>
-          <clipPath id="${k}">
+          <clipPath id="${x}">
             <rect x="0" y="0" width="100" height="100" />
           </clipPath>
         </defs>
-        <path class="gtv-ease-fill" d="${b}" fill="url(#${f})" clip-path="url(#${k})" />
-        <path class="gtv-ease-stroke" d="${d}" />
+        <path class="gtv-ease-fill" d="${w}" fill="url(#${f})" clip-path="url(#${x})" />
+        <path class="gtv-ease-stroke" d="${u}" />
       </svg>
     `;
   }
-  renderTrack(t, e) {
-    const i = t.startTime / e * 100, a = t.duration / e * 100, n = t.colorIndex + 1, r = [220, 70, 350, 160, 290, 25][t.colorIndex % 6], h = this.renderEaseCurve(t.easeSamples);
+  renderTrack(e, t) {
+    const i = e.startTime / t * 100, s = e.duration / t * 100, a = e.colorIndex + 1, l = [220, 70, 350, 160, 290, 25][e.colorIndex % 6], n = this.renderEaseCurve(e.easeSamples);
+    let g = "";
+    e.hasStagger && e.staggerChildren && e.staggerChildren.length > 0 && (g = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
     let p = "";
-    t.hasStagger && t.staggerChildren && t.staggerChildren.length > 0 && (p = '<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>');
-    let v = "";
-    if (t.staggerChildren && t.staggerChildren.length > 0) {
-      const b = t.staggerChildren.map((d) => {
-        const m = d.startTime / e * 100, f = (d.endTime - d.startTime) / e * 100;
+    if (e.staggerChildren && e.staggerChildren.length > 0) {
+      const w = e.staggerChildren.map((u) => {
+        const b = u.startTime / t * 100, f = (u.endTime - u.startTime) / t * 100;
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
-                 style="left: ${m}%; width: ${f}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${r};">
-              ${h}
-              <span class="gtv-track-label">${d.targetLabel}</span>
+                 style="left: ${b}%; width: ${f}%; background: var(--gtv-track-${a}); --track-color: var(--gtv-track-${a}); --track-hue: ${l};">
+              ${n}
+              <span class="gtv-track-label">${u.targetLabel}</span>
             </div>
           </div>
         `;
       }).join("");
-      v = `<div class="gtv-stagger-children" data-for="${t.id}">${b}</div>`;
+      p = `<div class="gtv-stagger-children" data-for="${e.id}">${w}</div>`;
     }
-    let u = "";
-    if (t.overlapWithPrev !== void 0) {
-      const b = t.overlapWithPrev > 0, d = Math.abs(t.overlapWithPrev) / e * 100;
-      if (b) {
-        const m = `-${S(t.overlapWithPrev)}s`;
-        u = `
-          <div class="gtv-overlap-region" style="left: ${i}%; width: ${d}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${i}%;">${m}</span>
+    let h = "";
+    if (e.overlapWithPrev !== void 0) {
+      const w = e.overlapWithPrev > 0, u = Math.abs(e.overlapWithPrev) / t * 100, b = i < 10, f = b ? " gtv-badge-right" : "", x = b ? i + s : i;
+      if (w) {
+        const m = `-${S(e.overlapWithPrev)}s`;
+        h = `
+          <div class="gtv-overlap-region" style="left: ${i}%; width: ${u}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-overlap${f}" style="left: ${x}%;">${m}</span>
         `;
       } else {
-        const m = `+${S(Math.abs(t.overlapWithPrev))}s`;
-        u = `
-          <div class="gtv-gap-connector" style="left: ${i - d}%; width: ${d}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${i}%;">${m}</span>
+        const m = `+${S(Math.abs(e.overlapWithPrev))}s`;
+        h = `
+          <div class="gtv-gap-connector" style="left: ${i - u}%; width: ${u}%;"></div>
+          <span class="gtv-offset-badge gtv-offset-gap${f}" style="left: ${x}%;">${m}</span>
         `;
       }
     }
     return `
-      <div class="gtv-track" data-expandable="${t.hasStagger && t.staggerChildren ? "true" : "false"}">
-        ${u}
+      <div class="gtv-track" data-expandable="${e.hasStagger && e.staggerChildren ? "true" : "false"}">
+        ${h}
         <div class="gtv-track-bar"
-             data-color="${n}"
-             data-tween-id="${t.id}"
-             style="left: ${i}%; width: ${a}%; background: var(--gtv-track-${n}); --track-color: var(--gtv-track-${n}); --track-hue: ${r};">
-          ${h}
-          <span class="gtv-track-label">${t.label}</span>
-          ${p}
+             data-color="${a}"
+             data-tween-id="${e.id}"
+             style="left: ${i}%; width: ${s}%; background: var(--gtv-track-${a}); --track-color: var(--gtv-track-${a}); --track-hue: ${l};">
+          ${n}
+          <span class="gtv-track-label">${e.label}</span>
+          ${g}
         </div>
-        ${v}
+        ${p}
       </div>
     `;
   }
 }
 customElements.define("gsap-timeline-viewer", I);
 const y = /* @__PURE__ */ new Map();
-let g = null, D = !0, J = 0, E = null;
-const M = /* @__PURE__ */ new WeakSet();
-let w = null;
+let v = null, z = !0, J = 0, T = null;
+const C = /* @__PURE__ */ new WeakSet();
+let P = null;
 function Z() {
-  if (E) return E;
-  const o = window;
-  return o.gsap || o.GSAP || null;
+  if (T) return T;
+  const c = window;
+  return c.gsap || c.GSAP || null;
 }
-function B() {
-  const o = Z();
-  if (!(o != null && o.globalTimeline)) return;
-  o.globalTimeline.getChildren(!1, !1, !0).forEach((t) => {
-    if (M.has(t)) return;
-    M.add(t);
-    const e = t.vars || {};
+function q() {
+  const c = Z();
+  if (!(c != null && c.globalTimeline)) return;
+  c.globalTimeline.getChildren(!1, !1, !0).forEach((e) => {
+    if (C.has(e)) return;
+    C.add(e);
+    const t = e.vars || {};
     let i;
-    e.id && typeof e.id == "string" ? i = e.id : i = `Timeline ${++J}`;
-    let a = i, n = 1;
-    for (; y.has(a); )
-      a = `${i} (${++n})`;
-    y.set(a, t), g && (g.htmlElement.updateTimelineSelector(), y.size === 1 && g.select(a));
+    t.id && typeof t.id == "string" ? i = t.id : i = `Timeline ${++J}`;
+    let s = i, a = 1;
+    for (; y.has(s); )
+      s = `${i} (${++a})`;
+    y.set(s, e), v && (v.htmlElement.updateTimelineSelector(), y.size === 1 && v.select(s));
   });
 }
 function Q() {
-  w || (B(), w = setInterval(B, 500));
+  P || (q(), P = setInterval(q, 500));
 }
-function tt() {
-  w && (clearInterval(w), w = null);
+function ee() {
+  P && (clearInterval(P), P = null);
 }
-class $ {
-  constructor(s = {}) {
-    c(this, "element");
-    c(this, "currentTimelineName", null);
-    this.element = document.createElement("gsap-timeline-viewer"), s.height && this.element.style.setProperty("--viewer-height", `${s.height}px`);
+class E {
+  constructor(r = {}) {
+    d(this, "element");
+    d(this, "currentTimelineName", null);
+    this.element = document.createElement("gsap-timeline-viewer"), r.height && this.element.style.setProperty("--viewer-height", `${r.height}px`);
   }
   /**
    * Create and attach the timeline viewer to the page.
    * Call this once - subsequent calls return the existing instance.
    */
-  static create(s = {}) {
-    return g || (s.gsap && (E = s.gsap, V(s.gsap)), D = s.autoDetect !== !1, g = new $(s), document.body.appendChild(g.element), D && Q(), setTimeout(() => {
-      if (g.element.updateTimelineSelector(), s.defaultTimeline && y.has(s.defaultTimeline))
-        g.select(s.defaultTimeline);
+  static create(r = {}) {
+    return v || (r.gsap && (T = r.gsap, G(r.gsap)), z = r.autoDetect !== !1, v = new E(r), document.body.appendChild(v.element), z && Q(), setTimeout(() => {
+      if (v.element.updateTimelineSelector(), r.defaultTimeline && y.has(r.defaultTimeline))
+        v.select(r.defaultTimeline);
       else if (y.size > 0) {
-        const t = y.keys().next().value;
-        t && g.select(t);
+        const e = y.keys().next().value;
+        e && v.select(e);
       }
-    }, 0), g);
+    }, 0), v);
   }
   /**
    * Register a timeline with a name so it appears in the dropdown.
    */
-  static register(s, t) {
-    y.set(s, t), g && (g.element.updateTimelineSelector(), y.size === 1 && g.select(s));
+  static register(r, e) {
+    y.set(r, e), v && (v.element.updateTimelineSelector(), y.size === 1 && v.select(r));
   }
   /**
    * Unregister a timeline.
    */
-  static unregister(s) {
-    y.delete(s), g && g.element.updateTimelineSelector();
+  static unregister(r) {
+    y.delete(r), v && v.element.updateTimelineSelector();
   }
   /**
    * Get all registered timelines.
@@ -758,14 +875,14 @@ class $ {
    * Get the viewer instance (if created).
    */
   static getInstance() {
-    return g;
+    return v;
   }
   /**
    * Select a timeline by name.
    */
-  select(s) {
-    const t = y.get(s);
-    t && (this.currentTimelineName = s, this.element.setTimeline(t), this.element.setSelectedTimeline(s));
+  select(r) {
+    const e = y.get(r);
+    e && (this.currentTimelineName = r, this.element.setTimeline(e), this.element.setSelectedTimeline(r));
   }
   /**
    * Get current timeline name.
@@ -777,7 +894,7 @@ class $ {
    * Remove the viewer from the page.
    */
   destroy() {
-    tt(), this.element.remove(), g = null;
+    ee(), this.element.remove(), v = null;
   }
   get htmlElement() {
     return this.element;
@@ -785,10 +902,10 @@ class $ {
 }
 const A = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  TimelineViewer: $,
+  TimelineViewer: E,
   TimelineViewerElement: I
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  $ as TimelineViewer,
+  E as TimelineViewer,
   I as TimelineViewerElement
 };

@@ -142,31 +142,88 @@
   height: 20px;
 }
 
-.gtv-speed-btn {
+.gtv-collapse-btn {
+  margin-left: auto;
+}
+
+/* Custom Dropdown with Popover API */
+.gtv-dropdown {
+  position: relative;
+}
+
+.gtv-dropdown-menu {
+  /* Popover base styling - hidden by default */
+  background: var(--gtv-bg-card);
+  border: none;
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gtv-dropdown-menu:popover-open {
+  /* Position will be set via JavaScript for Shadow DOM compatibility */
+}
+
+/* Dropdown trigger styles */
+.gtv-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gtv-timeline-trigger,
+.gtv-speed-trigger {
   width: auto;
   padding: 0 8px;
   font-size: 11px;
-  font-weight: 500;
 }
 
-.gtv-timeline-select {
-  background: var(--gtv-bg-card);
-  border: 1px solid var(--gtv-border);
+.gtv-timeline-value,
+.gtv-speed-value {
+  white-space: nowrap;
+}
+
+.gtv-timeline-value {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gtv-dropdown-caret {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.gtv-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
   border-radius: 4px;
-  color: var(--gtv-text);
-  font-size: 11px;
-  padding: 4px 8px;
+  color: var(--gtv-text-muted);
+  font-size: 12px;
   cursor: pointer;
-  max-width: 140px;
+  transition: background 0.15s, color 0.15s;
 }
 
-.gtv-timeline-select:focus {
-  outline: none;
-  border-color: var(--gtv-accent);
+.gtv-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gtv-text);
 }
 
-.gtv-collapse-btn {
-  margin-left: auto;
+.gtv-dropdown-item.selected {
+  color: var(--gtv-text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gtv-dropdown-item svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 /* Playrange Bar */
@@ -241,6 +298,43 @@
 .gtv-playrange-handle-end {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+/* Progress fill and scrubber for collapsed mode */
+.gtv-playrange-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.gtv-playrange-scrubber {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 12px;
+  height: 12px;
+  background: var(--gtv-text);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 4; /* Below playrange handles (z-index 5) */
+}
+
+.gtv-playrange-scrubber:hover {
+  background: #fff;
+}
+
+.gtv-container.collapsed .gtv-playrange-fill,
+.gtv-container.collapsed .gtv-playrange-scrubber {
+  opacity: 1;
 }
 
 /* Timeline Area (Card) */
@@ -586,6 +680,11 @@
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
+}
+
+.gtv-offset-badge.gtv-badge-right {
+  transform: translate(0, -50%);
+  margin-left: 4px;
 }
 
 .gtv-offset-overlap,

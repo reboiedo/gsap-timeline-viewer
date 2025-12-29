@@ -5,12 +5,13 @@ import styles from './styles/styles.css?inline';
 const SPEED_OPTIONS = [0.25, 0.5, 1, 2, 4];
 const STORAGE_KEY = 'gsap-timeline-viewer-settings';
 
+type LoopMode = 'oneshot' | 'loop' | 'pingpong';
+
 interface StoredSettings {
   height: number;
   collapsed: boolean;
   speedIndex: number;
-  isLooping: boolean;
-  isYoyo: boolean;
+  loopMode: LoopMode;
   isAutofit: boolean;
   showEaseCurves: boolean;
   selectedTimeline?: string;
@@ -34,8 +35,7 @@ export class TimelineViewerElement extends HTMLElement {
   private timeline: gsap.core.Timeline | null = null;
   private timelineData: TimelineData | null = null;
   private isPlaying = false;
-  private isLooping = false;
-  private isYoyo = false;
+  private loopMode: LoopMode = 'oneshot';
   private speedIndex = 2; // 1x
   private collapsed = false;
   private height = 200;
@@ -46,20 +46,24 @@ export class TimelineViewerElement extends HTMLElement {
   private playrangeStart = 0;   // 0-1 progress
   private playrangeEnd = 1;     // 0-1 progress
   private draggingPlayrange: 'start' | 'end' | null = null;
+  private draggingScrubber = false;
 
   // DOM references
   private container!: HTMLDivElement;
   private playBtn!: HTMLButtonElement;
-  private loopBtn!: HTMLButtonElement;
-  private yoyoBtn!: HTMLButtonElement;
-  private speedBtn!: HTMLButtonElement;
+  private loopDropdown!: HTMLDivElement;
+  private loopMenu!: HTMLDivElement;
+  private speedDropdown!: HTMLDivElement;
+  private speedMenu!: HTMLDivElement;
+  private timelineDropdown!: HTMLDivElement;
+  private timelineMenu!: HTMLDivElement;
   private timeDisplay!: HTMLSpanElement;
   private rulerInner!: HTMLDivElement;
   private tracksScroll!: HTMLDivElement;
   private playhead!: HTMLDivElement;
   private scrubArea!: HTMLDivElement;
   private resizeHandle!: HTMLDivElement;
-  private timelineSelect!: HTMLSelectElement;
+  private selectedTimelineName = '';
   private isResizing = false;
 
   constructor() {
@@ -83,8 +87,7 @@ export class TimelineViewerElement extends HTMLElement {
         this.height = settings.height ?? 200;
         this.collapsed = settings.collapsed ?? false;
         this.speedIndex = settings.speedIndex ?? 2;
-        this.isLooping = settings.isLooping ?? false;
-        this.isYoyo = settings.isYoyo ?? false;
+        this.loopMode = settings.loopMode ?? 'oneshot';
         this.isAutofit = settings.isAutofit ?? false;
         this.showEaseCurves = settings.showEaseCurves ?? false;
         this.playrangeStart = settings.playrangeStart ?? 0;
@@ -101,11 +104,10 @@ export class TimelineViewerElement extends HTMLElement {
         height: this.height,
         collapsed: this.collapsed,
         speedIndex: this.speedIndex,
-        isLooping: this.isLooping,
-        isYoyo: this.isYoyo,
+        loopMode: this.loopMode,
         isAutofit: this.isAutofit,
         showEaseCurves: this.showEaseCurves,
-        selectedTimeline: this.timelineSelect?.value,
+        selectedTimeline: this.selectedTimelineName,
         playrangeStart: this.playrangeStart,
         playrangeEnd: this.playrangeEnd,
       };
@@ -127,13 +129,9 @@ export class TimelineViewerElement extends HTMLElement {
     if (this.isAutofit) {
       this.shadow.querySelector('[data-action="autofit"]')?.classList.add('active');
     }
-    if (this.isLooping) {
-      this.loopBtn?.classList.add('active');
-    }
-    if (this.isYoyo) {
-      this.yoyoBtn?.classList.add('active');
-    }
-    this.speedBtn.textContent = `${SPEED_OPTIONS[this.speedIndex]}x`;
+    this.updateLoopIcon();
+    this.updateLoopMenuSelection();
+    this.updateSpeedDisplay();
     this.container.style.height = `${this.height}px`;
     this.updatePlayrangeDisplay();
   }
@@ -151,10 +149,12 @@ export class TimelineViewerElement extends HTMLElement {
 
     // Set up GSAP callbacks
     timeline.eventCallback('onUpdate', () => this.onTimelineUpdate());
+    timeline.eventCallback('onComplete', () => this.updatePlayState());
+    timeline.eventCallback('onReverseComplete', () => this.updatePlayState());
 
     // Apply saved settings to the timeline
     timeline.timeScale(SPEED_OPTIONS[this.speedIndex]);
-    timeline.repeat(this.isLooping ? -1 : 0);
+    timeline.repeat(this.loopMode === 'loop' ? -1 : 0);
 
     this.renderTracks();
     this.updatePlayhead();
@@ -167,34 +167,62 @@ export class TimelineViewerElement extends HTMLElement {
   updateTimelineSelector() {
     import('./index').then(({ TimelineViewer }) => {
       const timelines = TimelineViewer.getTimelines();
-      const currentValue = this.timelineSelect.value;
 
-      // Clear and rebuild options
-      this.timelineSelect.innerHTML = '';
+      // Clear and rebuild menu items
+      this.timelineMenu.innerHTML = '';
 
       // Add registered timelines
       timelines.forEach((_, name) => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        this.timelineSelect.appendChild(option);
+        const btn = document.createElement('button');
+        btn.className = 'gtv-dropdown-item';
+        btn.dataset.timeline = name;
+        btn.innerHTML = `<span>${name}</span>`;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectTimeline(name);
+          this.timelineMenu.hidePopover();
+        });
+        this.timelineMenu.appendChild(btn);
       });
 
-      // Restore selection if still valid
-      if (currentValue && timelines.has(currentValue)) {
-        this.timelineSelect.value = currentValue;
-      }
+      // Update selection display
+      this.updateTimelineDisplay();
+    });
+  }
+
+  private selectTimeline(name: string) {
+    this.selectedTimelineName = name;
+    this.updateTimelineDisplay();
+    if (name) {
+      import('./index').then(({ TimelineViewer }) => {
+        TimelineViewer.getInstance()?.select(name);
+      });
+    }
+    this.saveSettings();
+  }
+
+  private updateTimelineDisplay() {
+    const valueSpan = this.timelineDropdown.querySelector('.gtv-timeline-value')!;
+    valueSpan.textContent = this.selectedTimelineName || 'Select timeline';
+
+    // Update menu selection
+    this.timelineMenu.querySelectorAll('[data-timeline]').forEach(item => {
+      const itemName = (item as HTMLElement).dataset.timeline;
+      item.classList.toggle('selected', itemName === this.selectedTimelineName);
     });
   }
 
   setSelectedTimeline(name: string) {
-    this.timelineSelect.value = name;
+    this.selectedTimelineName = name;
+    this.updateTimelineDisplay();
     this.saveSettings();
   }
 
   private detachTimeline() {
     if (this.timeline) {
       this.timeline.eventCallback('onUpdate', null);
+      this.timeline.eventCallback('onComplete', null);
+      this.timeline.eventCallback('onReverseComplete', null);
       this.timeline = null;
       this.timelineData = null;
     }
@@ -210,36 +238,64 @@ export class TimelineViewerElement extends HTMLElement {
         <!-- Controls Bar -->
         <div class="gtv-controls">
           <div class="gtv-controls-left">
-            <select class="gtv-timeline-select" title="Select timeline">
-              <option value="">No timeline</option>
-            </select>
-            <button class="gtv-btn" data-action="loop" title="Loop (L)">
-              <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-            </button>
-            <button class="gtv-btn" data-action="yoyo" title="Yoyo (Y)">
-              <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
-            </button>
-            <button class="gtv-btn gtv-speed-btn" data-action="speed" title="Playback speed">1x</button>
+            <div class="gtv-dropdown gtv-timeline-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger gtv-timeline-trigger" title="Select timeline">
+                <span class="gtv-timeline-value">Select timeline</span>
+                <svg class="gtv-dropdown-caret" viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+              </button>
+              <div class="gtv-dropdown-menu" id="timeline-menu" popover>
+              </div>
+            </div>
           </div>
 
           <div class="gtv-controls-center">
-            <span class="gtv-time-display">
-              <span class="gtv-time-current">0.00</span>
-              <span class="gtv-time-total"> / 0.00</span>
-            </span>
-            <button class="gtv-btn" data-action="skip-start" title="Skip to start">
+            <button class="gtv-btn" data-action="rewind" title="Rewind (R)">
               <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
             </button>
             <button class="gtv-btn gtv-btn-play" data-action="play" title="Play/Pause (Space)">
               <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               <svg class="pause-icon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-            <button class="gtv-btn" data-action="skip-end" title="Skip to end">
-              <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2 0V6l6.5 6L8 18zm8-12v12h2V6h-2z"/></svg>
-            </button>
+            <div class="gtv-dropdown gtv-loop-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger" title="Loop mode">
+                <svg class="icon-oneshot" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="icon-loop" viewBox="0 0 24 24" style="display: none;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                <svg class="icon-pingpong" viewBox="0 0 24 24" style="display: none;"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+              </button>
+              <div class="gtv-dropdown-menu" id="loop-menu" popover>
+                <button class="gtv-dropdown-item" data-loop="oneshot">
+                  <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>One Shot</span>
+                </button>
+                <button class="gtv-dropdown-item" data-loop="loop">
+                  <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                  <span>Loop</span>
+                </button>
+                <button class="gtv-dropdown-item" data-loop="pingpong">
+                  <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+                  <span>Ping Pong</span>
+                </button>
+              </div>
+            </div>
+            <div class="gtv-dropdown gtv-speed-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger gtv-speed-trigger" title="Playback speed">
+                <span class="gtv-speed-value">1x</span>
+              </button>
+              <div class="gtv-dropdown-menu" id="speed-menu" popover>
+                <button class="gtv-dropdown-item" data-speed="0.25"><span>0.25x</span></button>
+                <button class="gtv-dropdown-item" data-speed="0.5"><span>0.5x</span></button>
+                <button class="gtv-dropdown-item selected" data-speed="1"><span>1x</span></button>
+                <button class="gtv-dropdown-item" data-speed="2"><span>2x</span></button>
+                <button class="gtv-dropdown-item" data-speed="4"><span>4x</span></button>
+              </div>
+            </div>
           </div>
 
           <div class="gtv-controls-right">
+            <span class="gtv-time-display">
+              <span class="gtv-time-current">0.00</span>
+              <span class="gtv-time-total"> / 0.00</span>
+            </span>
             <button class="gtv-btn" data-action="ease-curves" title="Show ease curves">
               <svg viewBox="0 0 24 24"><path d="M3 17c0 0 3-8 9-8s9 8 9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
@@ -258,6 +314,8 @@ export class TimelineViewerElement extends HTMLElement {
             <div class="gtv-playrange-inactive-left"></div>
             <div class="gtv-playrange-active"></div>
             <div class="gtv-playrange-inactive-right"></div>
+            <div class="gtv-playrange-fill"></div>
+            <div class="gtv-playrange-scrubber"></div>
           </div>
           <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
           <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
@@ -292,16 +350,18 @@ export class TimelineViewerElement extends HTMLElement {
     // Cache DOM references
     this.container = this.shadow.querySelector('.gtv-container')!;
     this.playBtn = this.shadow.querySelector('[data-action="play"]')!;
-    this.loopBtn = this.shadow.querySelector('[data-action="loop"]')!;
-    this.yoyoBtn = this.shadow.querySelector('[data-action="yoyo"]')!;
-    this.speedBtn = this.shadow.querySelector('[data-action="speed"]')!;
+    this.loopDropdown = this.shadow.querySelector('.gtv-loop-dropdown')!;
+    this.loopMenu = this.shadow.querySelector('#loop-menu')!;
+    this.speedDropdown = this.shadow.querySelector('.gtv-speed-dropdown')!;
+    this.speedMenu = this.shadow.querySelector('#speed-menu')!;
+    this.timelineDropdown = this.shadow.querySelector('.gtv-timeline-dropdown')!;
+    this.timelineMenu = this.shadow.querySelector('#timeline-menu')!;
     this.timeDisplay = this.shadow.querySelector('.gtv-time-display')!;
     this.rulerInner = this.shadow.querySelector('.gtv-ruler-inner')!;
     this.tracksScroll = this.shadow.querySelector('.gtv-tracks-scroll')!;
     this.playhead = this.shadow.querySelector('.gtv-playhead')!;
     this.scrubArea = this.shadow.querySelector('.gtv-scrub-area')!;
     this.resizeHandle = this.shadow.querySelector('.gtv-resize-handle')!;
-    this.timelineSelect = this.shadow.querySelector('.gtv-timeline-select')!;
   }
 
   private setupEventListeners() {
@@ -316,20 +376,8 @@ export class TimelineViewerElement extends HTMLElement {
         case 'play':
           this.togglePlay();
           break;
-        case 'skip-start':
-          this.skipToStart();
-          break;
-        case 'skip-end':
-          this.skipToEnd();
-          break;
-        case 'loop':
-          this.toggleLoop();
-          break;
-        case 'yoyo':
-          this.toggleYoyo();
-          break;
-        case 'speed':
-          this.cycleSpeed();
+        case 'rewind':
+          this.playReverse();
           break;
         case 'collapse':
           this.toggleCollapse();
@@ -346,15 +394,103 @@ export class TimelineViewerElement extends HTMLElement {
       (btn as HTMLButtonElement).blur();
     });
 
-    // Timeline selector change
-    this.timelineSelect.addEventListener('change', () => {
-      const name = this.timelineSelect.value;
-      if (name) {
-        // Import TimelineViewer to access the registry
-        import('./index').then(({ TimelineViewer }) => {
-          TimelineViewer.getInstance()?.select(name);
-        });
+    // Loop dropdown trigger - popovertarget doesn't work in Shadow DOM so handle manually
+    const loopTrigger = this.loopDropdown.querySelector('.gtv-dropdown-trigger')!;
+    let loopMenuOpen = false;
+    loopTrigger.addEventListener('mousedown', () => {
+      loopMenuOpen = this.loopMenu.matches(':popover-open');
+    });
+    loopTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close other popovers first
+      this.speedMenu.hidePopover();
+      this.timelineMenu.hidePopover();
+      // Only open if it wasn't already open before mousedown
+      if (!loopMenuOpen) {
+        this.loopMenu.showPopover();
       }
+    });
+
+    // Position popover when it opens, blur trigger when it closes
+    this.loopMenu.addEventListener('toggle', (e) => {
+      const event = e as ToggleEvent;
+      if (event.newState === 'open') {
+        this.positionPopover(this.loopMenu, loopTrigger as HTMLElement);
+      } else {
+        (loopTrigger as HTMLElement).blur();
+      }
+    });
+
+    // Speed dropdown trigger
+    const speedTrigger = this.speedDropdown.querySelector('.gtv-dropdown-trigger')!;
+    let speedMenuOpen = false;
+    speedTrigger.addEventListener('mousedown', () => {
+      speedMenuOpen = this.speedMenu.matches(':popover-open');
+    });
+    speedTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close other popovers first
+      this.loopMenu.hidePopover();
+      this.timelineMenu.hidePopover();
+      if (!speedMenuOpen) {
+        this.speedMenu.showPopover();
+      }
+    });
+
+    // Position speed popover when it opens, blur trigger when it closes
+    this.speedMenu.addEventListener('toggle', (e) => {
+      const event = e as ToggleEvent;
+      if (event.newState === 'open') {
+        this.positionPopover(this.speedMenu, speedTrigger as HTMLElement);
+      } else {
+        (speedTrigger as HTMLElement).blur();
+      }
+    });
+
+    // Speed dropdown item clicks
+    this.speedMenu.querySelectorAll('[data-speed]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const speed = parseFloat((item as HTMLElement).dataset.speed!);
+        this.setSpeed(speed);
+        this.speedMenu.hidePopover();
+      });
+    });
+
+    // Timeline dropdown trigger
+    const timelineTrigger = this.timelineDropdown.querySelector('.gtv-dropdown-trigger')!;
+    let timelineMenuOpen = false;
+    timelineTrigger.addEventListener('mousedown', () => {
+      timelineMenuOpen = this.timelineMenu.matches(':popover-open');
+    });
+    timelineTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close other popovers first
+      this.loopMenu.hidePopover();
+      this.speedMenu.hidePopover();
+      if (!timelineMenuOpen) {
+        this.timelineMenu.showPopover();
+      }
+    });
+
+    // Position timeline popover when it opens, blur trigger when it closes
+    this.timelineMenu.addEventListener('toggle', (e) => {
+      const event = e as ToggleEvent;
+      if (event.newState === 'open') {
+        this.positionPopover(this.timelineMenu, timelineTrigger as HTMLElement);
+      } else {
+        (timelineTrigger as HTMLElement).blur();
+      }
+    });
+
+    // Loop dropdown item clicks
+    this.loopMenu.querySelectorAll('[data-loop]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const mode = (item as HTMLElement).dataset.loop as LoopMode;
+        this.setLoopMode(mode);
+        this.loopMenu.hidePopover();
+      });
     });
 
     // Track bar click to expand stagger children
@@ -386,11 +522,13 @@ export class TimelineViewerElement extends HTMLElement {
       this.onScrub(e);
       this.onResize(e);
       this.onPlayrangeDrag(e);
+      this.onScrubberDrag(e);
     });
     document.addEventListener('mouseup', () => {
       this.endScrub();
       this.endResize();
       this.endPlayrangeDrag();
+      this.endScrubberDrag();
     });
 
     // Resize handle
@@ -400,6 +538,12 @@ export class TimelineViewerElement extends HTMLElement {
     this.shadow.querySelectorAll('.gtv-playrange-handle').forEach(handle => {
       handle.addEventListener('mousedown', (e) => this.startPlayrangeDrag(e as MouseEvent));
     });
+
+    // Scrubber handle dragging (collapsed mode)
+    const scrubber = this.shadow.querySelector('.gtv-playrange-scrubber');
+    if (scrubber) {
+      scrubber.addEventListener('mousedown', (e) => this.startScrubberDrag(e as MouseEvent));
+    }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -417,13 +561,21 @@ export class TimelineViewerElement extends HTMLElement {
           e.preventDefault();
           this.jumpToNextPoint();
           break;
+        case 'KeyR':
+          e.preventDefault();
+          this.playReverse();
+          break;
+        case 'KeyO':
+          e.preventDefault();
+          this.setLoopMode('oneshot');
+          break;
         case 'KeyL':
           e.preventDefault();
-          this.toggleLoop();
+          this.setLoopMode('loop');
           break;
-        case 'KeyY':
+        case 'KeyP':
           e.preventDefault();
-          this.toggleYoyo();
+          this.setLoopMode('pingpong');
           break;
         case 'BracketLeft': // [
           e.preventDefault();
@@ -522,6 +674,37 @@ export class TimelineViewerElement extends HTMLElement {
     this.saveSettings();
   }
 
+  private startScrubberDrag(e: MouseEvent) {
+    if (!this.timeline) return;
+    e.preventDefault();
+    e.stopPropagation();
+    this.draggingScrubber = true;
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    this.onScrubberDrag(e);
+  }
+
+  private onScrubberDrag(e: MouseEvent) {
+    if (!this.draggingScrubber || !this.timeline) return;
+    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    let progress = x / rect.width;
+    // Constrain to playrange
+    progress = Math.max(this.playrangeStart, Math.min(progress, this.playrangeEnd));
+    this.timeline.progress(progress);
+    this.timeline.pause();
+    this.updatePlayState();
+  }
+
+  private endScrubberDrag() {
+    if (!this.draggingScrubber) return;
+    this.draggingScrubber = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+
   private updatePlayrangeDisplay() {
     const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
     const handleStart = this.shadow.querySelector('.gtv-playrange-handle-start') as HTMLElement;
@@ -611,9 +794,19 @@ export class TimelineViewerElement extends HTMLElement {
   private togglePlay() {
     if (!this.timeline) return;
 
-    if (this.timeline.paused() || this.timeline.progress() === 1) {
-      if (this.timeline.progress() === 1) {
-        this.timeline.restart();
+    const progress = this.timeline.progress();
+    const atStart = progress <= this.playrangeStart;
+    const atEnd = progress >= this.playrangeEnd;
+
+    if (this.timeline.paused() || atEnd || atStart) {
+      if (atEnd && !this.timeline.reversed()) {
+        // At end playing forward, restart from playrange start
+        this.timeline.progress(this.playrangeStart);
+        this.timeline.play();
+      } else if (atStart && this.timeline.reversed()) {
+        // At start after reversing, play forward
+        this.timeline.reversed(false);
+        this.timeline.play();
       } else {
         this.timeline.play();
       }
@@ -624,17 +817,13 @@ export class TimelineViewerElement extends HTMLElement {
     this.updatePlayState();
   }
 
-  private skipToStart() {
+  private playReverse() {
     if (!this.timeline) return;
-    this.timeline.progress(0);
-    this.timeline.pause();
-    this.updatePlayState();
-  }
-
-  private skipToEnd() {
-    if (!this.timeline) return;
-    this.timeline.progress(1);
-    this.timeline.pause();
+    // If at start, seek to end first so reverse has somewhere to go
+    if (this.timeline.progress() === 0) {
+      this.timeline.progress(1);
+    }
+    this.timeline.reverse();
     this.updatePlayState();
   }
 
@@ -695,39 +884,83 @@ export class TimelineViewerElement extends HTMLElement {
     this.updatePlayState();
   }
 
-  private toggleLoop() {
-    if (!this.timeline) return;
-    this.isLooping = !this.isLooping;
-    this.timeline.repeat(this.isLooping ? -1 : 0);
-    this.loopBtn.classList.toggle('active', this.isLooping);
-    // Mutually exclusive with yoyo
-    if (this.isLooping && this.isYoyo) {
-      this.isYoyo = false;
-      this.yoyoBtn.classList.remove('active');
+  private positionPopover(popover: HTMLElement, trigger: HTMLElement) {
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+
+    // Position centered horizontally
+    const left = triggerRect.left + (triggerRect.width / 2) - (popoverRect.width / 2);
+
+    // Position above when collapsed, below when expanded
+    let top: number;
+    if (this.collapsed) {
+      top = triggerRect.top - popoverRect.height - 4;
+    } else {
+      top = triggerRect.bottom + 4;
+    }
+
+    popover.style.position = 'fixed';
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+    popover.style.margin = '0';
+  }
+
+  private setLoopMode(mode: LoopMode) {
+    this.loopMode = mode;
+    this.updateLoopIcon();
+    this.updateLoopMenuSelection();
+    // Update GSAP repeat based on loop mode
+    if (this.timeline) {
+      this.timeline.repeat(this.loopMode === 'loop' ? -1 : 0);
     }
     this.saveSettings();
   }
 
-  private toggleYoyo() {
-    if (!this.timeline) return;
-    this.isYoyo = !this.isYoyo;
-    this.yoyoBtn.classList.toggle('active', this.isYoyo);
-    // Mutually exclusive with loop
-    if (this.isYoyo && this.isLooping) {
-      this.isLooping = false;
-      this.timeline.repeat(0);
-      this.loopBtn.classList.remove('active');
+  private updateLoopIcon() {
+    const trigger = this.loopDropdown.querySelector('.gtv-dropdown-trigger')!;
+    const oneshotIcon = trigger.querySelector('.icon-oneshot') as HTMLElement;
+    const loopIcon = trigger.querySelector('.icon-loop') as HTMLElement;
+    const pingpongIcon = trigger.querySelector('.icon-pingpong') as HTMLElement;
+
+    oneshotIcon.style.display = this.loopMode === 'oneshot' ? 'block' : 'none';
+    loopIcon.style.display = this.loopMode === 'loop' ? 'block' : 'none';
+    pingpongIcon.style.display = this.loopMode === 'pingpong' ? 'block' : 'none';
+
+    // Update title for accessibility
+    const titles: Record<LoopMode, string> = {
+      oneshot: 'One Shot',
+      loop: 'Loop',
+      pingpong: 'Ping Pong'
+    };
+    trigger.setAttribute('title', titles[this.loopMode]);
+  }
+
+  private updateLoopMenuSelection() {
+    this.loopDropdown.querySelectorAll('[data-loop]').forEach(item => {
+      const mode = (item as HTMLElement).dataset.loop;
+      item.classList.toggle('selected', mode === this.loopMode);
+    });
+  }
+
+  private setSpeed(speed: number) {
+    this.speedIndex = SPEED_OPTIONS.indexOf(speed);
+    if (this.timeline) {
+      this.timeline.timeScale(speed);
     }
+    this.updateSpeedDisplay();
     this.saveSettings();
   }
 
-  private cycleSpeed() {
-    if (!this.timeline) return;
-    this.speedIndex = (this.speedIndex + 1) % SPEED_OPTIONS.length;
+  private updateSpeedDisplay() {
     const speed = SPEED_OPTIONS[this.speedIndex];
-    this.timeline.timeScale(speed);
-    this.speedBtn.textContent = `${speed}x`;
-    this.saveSettings();
+    const valueSpan = this.speedDropdown.querySelector('.gtv-speed-value')!;
+    valueSpan.textContent = `${speed}x`;
+
+    // Update menu selection
+    this.speedMenu.querySelectorAll('[data-speed]').forEach(item => {
+      const itemSpeed = parseFloat((item as HTMLElement).dataset.speed!);
+      item.classList.toggle('selected', itemSpeed === speed);
+    });
   }
 
   private toggleCollapse() {
@@ -788,7 +1021,15 @@ export class TimelineViewerElement extends HTMLElement {
 
   private updatePlayState() {
     if (!this.timeline) return;
-    this.isPlaying = !this.timeline.paused() && this.timeline.progress() < 1;
+
+    const progress = this.timeline.progress();
+    const atEnd = progress >= this.playrangeEnd;
+    const atStart = progress <= this.playrangeStart;
+
+    // Not playing if: paused, at end going forward, or at start going backward
+    this.isPlaying = !this.timeline.paused() &&
+                     !(atEnd && !this.timeline.reversed()) &&
+                     !(atStart && this.timeline.reversed());
 
     const playIcon = this.playBtn.querySelector('.play-icon') as HTMLElement;
     const pauseIcon = this.playBtn.querySelector('.pause-icon') as HTMLElement;
@@ -812,13 +1053,14 @@ export class TimelineViewerElement extends HTMLElement {
 
     const progress = this.timeline.progress();
 
-    // Handle yoyo mode (ping-pong playback)
-    if (this.isYoyo) {
+    // Handle ping-pong mode
+    if (this.loopMode === 'pingpong') {
       if (progress >= this.playrangeEnd && !this.timeline.reversed()) {
         // Reached end while playing forward - reverse
         this.timeline.reverse();
       } else if (progress <= this.playrangeStart && this.timeline.reversed()) {
         // Reached start while playing backward - play forward
+        this.timeline.reversed(false);
         this.timeline.play();
       }
       return;
@@ -828,11 +1070,11 @@ export class TimelineViewerElement extends HTMLElement {
     if (this.playrangeStart === 0 && this.playrangeEnd === 1) return;
 
     if (progress >= this.playrangeEnd) {
-      if (this.isLooping) {
+      if (this.loopMode === 'loop') {
         // Loop back to start
         this.timeline.progress(this.playrangeStart);
       } else {
-        // Stop at end
+        // One shot: stop at end
         this.timeline.progress(this.playrangeEnd);
         this.timeline.pause();
         this.updatePlayState();
@@ -848,6 +1090,20 @@ export class TimelineViewerElement extends HTMLElement {
 
     const progress = this.timeline.progress();
     this.playhead.style.left = `${progress * 100}%`;
+
+    // Update collapsed mode progress indicator
+    const fill = this.shadow.querySelector('.gtv-playrange-fill') as HTMLElement;
+    const scrubber = this.shadow.querySelector('.gtv-playrange-scrubber') as HTMLElement;
+    if (fill) {
+      // Fill only within playrange (from start marker to current position)
+      const startPct = this.playrangeStart * 100;
+      const currentPct = progress * 100;
+      fill.style.left = `${startPct}%`;
+      fill.style.width = `${Math.max(0, currentPct - startPct)}%`;
+    }
+    if (scrubber) {
+      scrubber.style.left = `${progress * 100}%`;
+    }
   }
 
   private updateTimeDisplay() {
@@ -1077,13 +1333,17 @@ export class TimelineViewerElement extends HTMLElement {
     if (tween.overlapWithPrev !== undefined) {
       const isOverlap = tween.overlapWithPrev > 0;
       const overlapWidth = (Math.abs(tween.overlapWithPrev) / totalDuration) * 100;
+      // Position badge on right if it would clip off left edge
+      const badgeOnRight = left < 10;
+      const badgeClass = badgeOnRight ? ' gtv-badge-right' : '';
+      const badgeLeft = badgeOnRight ? left + width : left;
 
       if (isOverlap) {
         // Overlap: show relative offset (negative)
         const offsetLabel = `-${formatTime(tween.overlapWithPrev)}s`;
         overlapHtml = `
           <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-overlap" style="left: ${left}%;">${offsetLabel}</span>
+          <span class="gtv-offset-badge gtv-offset-overlap${badgeClass}" style="left: ${badgeLeft}%;">${offsetLabel}</span>
         `;
       } else {
         // Gap: show relative offset (positive)
@@ -1091,7 +1351,7 @@ export class TimelineViewerElement extends HTMLElement {
         const gapLeft = left - overlapWidth;
         overlapHtml = `
           <div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-gap" style="left: ${left}%;">${offsetLabel}</span>
+          <span class="gtv-offset-badge gtv-offset-gap${badgeClass}" style="left: ${badgeLeft}%;">${offsetLabel}</span>
         `;
       }
     }
