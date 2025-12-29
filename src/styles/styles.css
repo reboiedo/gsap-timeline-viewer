@@ -231,8 +231,26 @@
   position: relative;
   height: 16px;
   background: var(--gtv-bg);
-  padding: 2px calc(var(--gtv-timeline-padding) + 8px);
   margin-bottom: 8px;
+}
+
+.gtv-playrange-scroll {
+  position: relative;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 2px var(--gtv-timeline-padding);
+  scrollbar-width: none; /* Hide scrollbar - synced with tracks */
+}
+
+.gtv-playrange-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.gtv-playrange-inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .gtv-playrange-track {
@@ -371,9 +389,16 @@
   height: var(--gtv-ruler-height);
   background: var(--gtv-bg-card);
   border-bottom: 1px solid var(--gtv-border);
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior: none;
   flex-shrink: 0;
   padding: 0 var(--gtv-timeline-padding);
+  scrollbar-width: none; /* Hide scrollbar - synced with tracks */
+}
+
+.gtv-ruler::-webkit-scrollbar {
+  display: none;
 }
 
 .gtv-ruler-inner {
@@ -401,6 +426,27 @@
   font-size: 10px;
   color: var(--gtv-text-muted);
   margin-top: 2px;
+}
+
+/* Playhead head in ruler - synced with playhead line in tracks */
+.gtv-ruler-playhead-head {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.gtv-ruler-playhead-head::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: -5px;
+  width: 11px;
+  height: 11px;
+  background: var(--gtv-playhead);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
 }
 
 /* Timeline Labels - Full height dashed lines */
@@ -445,7 +491,8 @@
 .gtv-tracks-container {
   position: relative;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
+  overscroll-behavior: none;
   flex: 1;
   padding: 0 var(--gtv-timeline-padding);
 }
@@ -454,6 +501,7 @@
   position: relative;
   min-height: 100%;
   width: 100%;
+  overflow: visible;
 }
 
 /* Individual Track */
@@ -469,25 +517,61 @@
   border-radius: 4px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
   padding: 0 8px;
   font-size: 11px;
   font-weight: 500;
   color: #fff;
-  overflow: hidden;
+  overflow: visible;
   cursor: default;
   transition: filter 0.15s;
 }
 
 .gtv-track-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
   position: relative;
   z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Smart label positioning - outside bar when too narrow */
+.gtv-track-label.outside-left,
+.gtv-track-label.outside-right {
+  position: absolute;
+  flex: none;
+  overflow: visible;
+}
+
+.gtv-track-label.outside-left {
+  right: 100%;
+  left: auto;
+  padding-right: 6px;
+}
+
+.gtv-track-label.outside-right {
+  left: 100%;
+  right: auto;
+  padding-left: 6px;
+}
+
+/* Stagger label outside positioning */
+.gtv-track-stagger.outside-left,
+.gtv-track-stagger.outside-right {
+  position: absolute;
+  flex: none;
+}
+
+.gtv-track-stagger.outside-left {
+  right: 100%;
+  left: auto;
+  padding-right: 6px;
+}
+
+.gtv-track-stagger.outside-right {
+  left: 100%;
+  right: auto;
+  padding-left: 6px;
 }
 
 .gtv-track-stagger {
@@ -496,6 +580,29 @@
   flex-shrink: 0;
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gtv-track-stagger:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.gtv-repeat-badge {
+  font-size: 9px;
+  opacity: 0.8;
+  margin-left: 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .gtv-track-bar:hover {
@@ -541,38 +648,21 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* Playhead - spans entire timeline area */
-.gtv-playhead-wrapper {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--gtv-timeline-padding);
-  right: var(--gtv-timeline-padding);
-  pointer-events: none;
-  z-index: 15;
-}
-
+/* Playhead line - inside tracksScroll for consistent coordinate system */
+/* Playhead head is in ruler-inner (see .gtv-ruler-playhead-head above) */
 .gtv-playhead {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 0;
   left: 0;
-}
-
-.gtv-playhead-head {
-  position: absolute;
-  top: 6px;
-  left: -5px;
-  width: 11px;
-  height: 11px;
-  background: var(--gtv-playhead);
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  z-index: 15;
+  pointer-events: none;
 }
 
 .gtv-playhead-line {
   position: absolute;
-  top: 6px;
+  top: 0;
   bottom: 0;
   left: 0;
   width: 1px;
@@ -596,6 +686,7 @@
 
 .gtv-expand-icon {
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
 .gtv-track.expanded .gtv-expand-icon {
@@ -628,16 +719,112 @@
   padding: 0 6px;
   font-size: 10px;
   color: #fff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .gtv-stagger-child-bar .gtv-track-label {
-  overflow: hidden;
   position: relative;
   z-index: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
+
+/* Timeline Groups */
+.gtv-timeline-group {
+  position: relative;
+}
+
+.gtv-timeline-group[data-expandable="true"] .gtv-group-header {
+  cursor: pointer;
+}
+
+.gtv-group-header {
+  position: relative;
+  height: var(--gtv-track-height);
+  width: 100%;
+}
+
+.gtv-group-bar {
+  position: absolute;
+  top: 4px;
+  height: calc(var(--gtv-track-height) - 8px);
+  min-height: 28px;
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--group-color) 60%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 8px;
+  overflow: visible;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Right-aligned group bar - when content would overflow past timeline end */
+.gtv-group-bar.gtv-align-right {
+  justify-content: flex-end;
+}
+
+.gtv-group-bar:hover {
+  background: color-mix(in oklch, var(--group-color) 80%, transparent);
+}
+
+.gtv-group-name {
+  font-weight: 600;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.gtv-group-info {
+  font-size: 10px;
+  opacity: 0.8;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.gtv-group-expand {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gtv-group-expand:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.gtv-group-expand .gtv-expand-icon {
+  opacity: 0.9;
+}
+
+.gtv-timeline-group.expanded .gtv-group-bar .gtv-expand-icon {
+  transform: rotate(180deg);
+}
+
+.gtv-group-children {
+  display: none;
+  position: relative;
+}
+
+.gtv-timeline-group.expanded .gtv-group-children {
+  display: block;
+}
+
+/* Grouped tracks use the group's color (set via inline style) */
 
 /* Overlap/Gap Indicators */
 .gtv-overlap-region {
@@ -668,30 +855,23 @@
   pointer-events: none;
 }
 
+/* Offset badge - inline with label inside track-bar (appears after title/dropdown) */
 .gtv-offset-badge {
-  position: absolute;
-  top: 50%;
-  transform: translate(-100%, -50%);
-  margin-left: -4px;
   font-size: 9px;
   font-weight: 500;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 3px;
   white-space: nowrap;
-  pointer-events: none;
-  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--gtv-text);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
-.gtv-offset-badge.gtv-badge-right {
-  transform: translate(0, -50%);
-  margin-left: 4px;
-}
-
-.gtv-offset-overlap,
-.gtv-offset-gap {
-  background: var(--gtv-bg-card);
-  border: 1px solid var(--gtv-border);
-  color: var(--gtv-text-muted);
+/* Right-aligned track bar - when content would overflow past timeline end */
+.gtv-track-bar.gtv-align-right {
+  justify-content: flex-end;
 }
 
 /* Empty state */

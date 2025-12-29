@@ -4,7 +4,7 @@ A lightweight, framework-agnostic development tool for visualizing and debugging
 
 ![GSAP Timeline Viewer](https://raw.githubusercontent.com/reboiedo/gsap-timeline-viewer/main/screenshot.png)
 
-**~11 KB gzipped** | Works with React, Vue, Angular, Svelte, or vanilla JS
+**~14 KB gzipped** | Works with React, Vue, Angular, Svelte, or vanilla JS
 
 [**▶ Try it on CodePen**](https://codepen.io/ry2/pen/GgqJvYJ)
 
@@ -15,6 +15,8 @@ A lightweight, framework-agnostic development tool for visualizing and debugging
 - **Playback controls** - Play/pause, reverse, skip, speed (0.25x–4x), loop modes
 - **Playrange bar** - Drag handles to set playback boundaries
 - **Ease curve visualization** - Toggle to see ease curves as track shapes
+- **Repeat/yoyo curves** - Ease curves visualize repeat iterations and yoyo direction
+- **Nested timeline groups** - Collapsible groups for child timelines with tween counts
 - **Stagger expansion** - Expand staggered animations to see individual targets
 - **Scrubbing** - Click or drag anywhere on the timeline
 - **Resizable & collapsible** - Drag to resize, minimize when not in use
@@ -37,7 +39,7 @@ TimelineViewer.create({ gsap });
 // Your animations are auto-detected
 const tl = gsap.timeline({ id: 'My Animation' });
 tl.to('.box', { x: 100, duration: 1, id: 'Slide Right' })
-  .to('.box', { y: 50, duration: 0.5, id: 'Drop Down' });
+  .to('.box', { y: 50, duration: 0.5, repeat: 2, yoyo: true, id: 'Bounce' });
 ```
 
 **Tip:** Add `id` to timelines and tweens for better labels in the viewer.
@@ -53,7 +55,7 @@ tl.to('.box', { x: 100, duration: 1, id: 'Slide Right' })
 
   gsap.timeline({ id: 'My Animation' })
     .to('.box', { x: 100, duration: 1, id: 'Slide Right' })
-    .to('.box', { y: 50, duration: 0.5, id: 'Drop Down' });
+    .to('.box', { y: 50, duration: 0.5, repeat: 2, yoyo: true, id: 'Bounce' });
 </script>
 ```
 

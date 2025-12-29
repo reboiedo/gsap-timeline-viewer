@@ -19,6 +19,9 @@ export interface TweenData {
   staggerValue?: number;
   staggerChildren?: StaggerChild[];
   overlapWithPrev?: number;  // positive = overlap, negative = gap
+  parentTimelineId?: string;  // ID of parent timeline (for grouping)
+  repeat?: number;  // Number of times to repeat (0 = no repeat)
+  yoyo?: boolean;   // Whether to alternate direction on each repeat
 }
 
 export interface LabelData {
@@ -26,10 +29,21 @@ export interface LabelData {
   time: number;
 }
 
+export interface TimelineGroupData {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime: number;
+  colorIndex: number;
+  tweenCount: number;
+  positionOffset?: number;  // offset from previous group (positive = overlap, negative = gap)
+}
+
 export interface TimelineData {
   duration: number;
   tweens: TweenData[];
   labels: LabelData[];
+  groups: TimelineGroupData[];
 }
 
 let tweenCounter = 0;
@@ -114,8 +128,58 @@ function sampleEase(easeName: string, tween?: gsap.core.Tween, points = 50): num
   return samples;
 }
 
+/**
+ * Calculate the absolute start time of a tween relative to a root timeline.
+ * Traverses up the parent chain, summing start times.
+ */
+function getAbsoluteStartTime(tween: gsap.core.Animation, rootTimeline: gsap.core.Timeline): number {
+  let time = tween.startTime();
+  let parent = tween.parent;
+
+  // Walk up the parent chain until we reach the root timeline
+  while (parent && parent !== rootTimeline) {
+    time += parent.startTime();
+    parent = parent.parent;
+  }
+
+  return time;
+}
+
+/**
+ * Get parent timeline ID and info for a tween.
+ * Returns undefined if the tween is directly on the root timeline.
+ */
+function getParentTimelineId(tween: gsap.core.Animation, rootTimeline: gsap.core.Timeline): string | undefined {
+  const parent = tween.parent;
+  if (!parent || parent === rootTimeline) {
+    return undefined;
+  }
+  // Use the timeline's id from vars, or generate a unique ID
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parentVars = (parent as any).vars || {};
+  if (parentVars.id) {
+    return parentVars.id;
+  }
+  // Generate a stable ID based on the parent's position
+  return `timeline-${parent.startTime()}-${parent.duration()}`;
+}
+
+/**
+ * Get the name of a parent timeline (from its vars.id or generated).
+ */
+function getParentTimelineName(tween: gsap.core.Animation, rootTimeline: gsap.core.Timeline): string | undefined {
+  const parent = tween.parent;
+  if (!parent || parent === rootTimeline) {
+    return undefined;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parentVars = (parent as any).vars || {};
+  return parentVars.id || undefined;
+}
+
 export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
   const tweens: TweenData[] = [];
+  const groupsMap = new Map<string, { name: string; startTime: number; endTime: number; tweenCount: number }>();
 
   // Get all children - tweens and nested timelines
   const children = timeline.getChildren(true, true, false);
@@ -139,8 +203,36 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
       label = propSummary ? `${targetLabel} (${propSummary})` : targetLabel;
     }
 
-    const startTime = child.startTime();
-    const duration = child.duration();
+    // Calculate absolute start time relative to the root timeline
+    const startTime = getAbsoluteStartTime(child, timeline);
+    // Use totalDuration() to include repeats
+    const duration = child.totalDuration();
+    const endTime = startTime + duration;
+
+    // Extract repeat/yoyo values
+    const repeat = typeof vars.repeat === 'number' && vars.repeat > 0 ? vars.repeat : undefined;
+    const yoyo = vars.yoyo === true;
+
+    // Get parent timeline info for grouping
+    const parentTimelineId = getParentTimelineId(tween, timeline);
+    const parentTimelineName = getParentTimelineName(tween, timeline);
+
+    // Track group data
+    if (parentTimelineId) {
+      const existing = groupsMap.get(parentTimelineId);
+      if (existing) {
+        existing.startTime = Math.min(existing.startTime, startTime);
+        existing.endTime = Math.max(existing.endTime, endTime);
+        existing.tweenCount++;
+      } else {
+        groupsMap.set(parentTimelineId, {
+          name: parentTimelineName || parentTimelineId,
+          startTime,
+          endTime,
+          tweenCount: 1,
+        });
+      }
+    }
 
     // Get ease name (GSAP default is "power1.out")
     let ease = 'power1.out';
@@ -180,7 +272,7 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
       id: `tween-${++tweenCounter}`,
       label,
       startTime,
-      endTime: startTime + duration,
+      endTime,
       duration,
       targets: getTargetLabel(targets),
       properties,
@@ -190,6 +282,9 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
       easeSamples: sampleEase(ease, tween),
       staggerValue,
       staggerChildren,
+      parentTimelineId,
+      repeat,
+      yoyo,
     });
   });
 
@@ -212,10 +307,42 @@ export function parseTimeline(timeline: gsap.core.Timeline): TimelineData {
     time: time as number,
   })).sort((a, b) => a.time - b.time);
 
+  // Build groups array from map
+  const groups: TimelineGroupData[] = [];
+  let groupIndex = 0;
+  groupsMap.forEach((group, id) => {
+    groups.push({
+      id,
+      name: group.name,
+      startTime: group.startTime,
+      endTime: group.endTime,
+      colorIndex: groupIndex % 6,
+      tweenCount: group.tweenCount,
+    });
+    groupIndex++;
+  });
+
+  // Sort groups by start time
+  groups.sort((a, b) => a.startTime - b.startTime);
+
+  // Calculate position offsets between consecutive groups (like tween overlaps)
+  for (let i = 1; i < groups.length; i++) {
+    const prev = groups[i - 1];
+    const curr = groups[i];
+    // Overlap = prev.endTime - curr.startTime
+    // positive = overlap (curr starts before prev ends)
+    // negative = gap (curr starts after prev ends)
+    const offset = prev.endTime - curr.startTime;
+    if (Math.abs(offset) > 0.001) {
+      curr.positionOffset = Math.round(offset * 1000) / 1000;
+    }
+  }
+
   return {
     duration: timeline.duration(),
     tweens,
     labels,
+    groups,
   };
 }
 

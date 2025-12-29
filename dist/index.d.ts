@@ -53,6 +53,8 @@ export declare class TimelineViewerElement extends HTMLElement {
     private isPlaying;
     private loopMode;
     private speedIndex;
+    private zoomLevel;
+    private readonly zoomLevels;
     private collapsed;
     private height;
     private isDragging;
@@ -69,11 +71,18 @@ export declare class TimelineViewerElement extends HTMLElement {
     private loopMenu;
     private speedDropdown;
     private speedMenu;
+    private zoomDropdown;
+    private zoomMenu;
     private timelineDropdown;
     private timelineMenu;
     private timeDisplay;
+    private ruler;
     private rulerInner;
+    private rulerPlayheadHead;
+    private tracksContainer;
     private tracksScroll;
+    private playrangeScroll;
+    private playrangeInner;
     private playhead;
     private scrubArea;
     private resizeHandle;
@@ -123,6 +132,11 @@ export declare class TimelineViewerElement extends HTMLElement {
     private updateLoopMenuSelection;
     private setSpeed;
     private updateSpeedDisplay;
+    private setZoom;
+    private zoomIn;
+    private zoomOut;
+    private resetZoom;
+    private updateZoomDisplay;
     private toggleCollapse;
     private toggleAutofit;
     private toggleEaseCurves;
@@ -134,11 +148,26 @@ export declare class TimelineViewerElement extends HTMLElement {
     private updateTimeDisplay;
     private updateActiveTracks;
     private renderTracks;
+    /**
+     * Dynamically update bar content alignment based on actual DOM measurements.
+     * Right-aligns bars whose content would overflow past the timeline boundary.
+     */
+    private updateContentAlignment;
+    /**
+     * Update content alignment for bars within a specific container element.
+     */
+    private updateContentAlignmentForElement;
     private renderGridLines;
     private renderRuler;
     private renderLabelLines;
     private calculateInterval;
     private renderEaseCurve;
+    /**
+     * Determine label position class based on bar width and position.
+     * Currently disabled - labels always stay inside bars with overflow hidden.
+     */
+    private getLabelPositionClass;
+    private renderGroup;
     private renderTrack;
 }
 

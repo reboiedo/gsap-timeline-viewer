@@ -1,4 +1,4 @@
-import { parseTimeline, resetCounter, type TweenData, type TimelineData } from './utils/gsap-parser';
+import { parseTimeline, resetCounter, type TweenData, type TimelineData, type TimelineGroupData } from './utils/gsap-parser';
 import { formatTime } from './utils/time-formatter';
 import styles from './styles/styles.css?inline';
 
@@ -37,6 +37,8 @@ export class TimelineViewerElement extends HTMLElement {
   private isPlaying = false;
   private loopMode: LoopMode = 'oneshot';
   private speedIndex = 2; // 1x
+  private zoomLevel = 1; // 1 = fit all
+  private readonly zoomLevels = [1, 2, 4, 6, 8, 10];
   private collapsed = false;
   private height = 200;
   private isDragging = false;
@@ -55,11 +57,18 @@ export class TimelineViewerElement extends HTMLElement {
   private loopMenu!: HTMLDivElement;
   private speedDropdown!: HTMLDivElement;
   private speedMenu!: HTMLDivElement;
+  private zoomDropdown!: HTMLDivElement;
+  private zoomMenu!: HTMLDivElement;
   private timelineDropdown!: HTMLDivElement;
   private timelineMenu!: HTMLDivElement;
   private timeDisplay!: HTMLSpanElement;
+  private ruler!: HTMLDivElement;
   private rulerInner!: HTMLDivElement;
+  private rulerPlayheadHead!: HTMLDivElement;
+  private tracksContainer!: HTMLDivElement;
   private tracksScroll!: HTMLDivElement;
+  private playrangeScroll!: HTMLDivElement;
+  private playrangeInner!: HTMLDivElement;
   private playhead!: HTMLDivElement;
   private scrubArea!: HTMLDivElement;
   private resizeHandle!: HTMLDivElement;
@@ -289,6 +298,19 @@ export class TimelineViewerElement extends HTMLElement {
                 <button class="gtv-dropdown-item" data-speed="4"><span>4x</span></button>
               </div>
             </div>
+            <div class="gtv-dropdown gtv-zoom-dropdown">
+              <button class="gtv-btn gtv-dropdown-trigger gtv-zoom-trigger" title="Timeline zoom (+/-/0)">
+                <span class="gtv-zoom-value">Fit</span>
+              </button>
+              <div class="gtv-dropdown-menu" id="zoom-menu" popover>
+                <button class="gtv-dropdown-item selected" data-zoom="1"><span>Fit</span></button>
+                <button class="gtv-dropdown-item" data-zoom="2"><span>200%</span></button>
+                <button class="gtv-dropdown-item" data-zoom="4"><span>400%</span></button>
+                <button class="gtv-dropdown-item" data-zoom="6"><span>600%</span></button>
+                <button class="gtv-dropdown-item" data-zoom="8"><span>800%</span></button>
+                <button class="gtv-dropdown-item" data-zoom="10"><span>1000%</span></button>
+              </div>
+            </div>
           </div>
 
           <div class="gtv-controls-right">
@@ -310,38 +332,41 @@ export class TimelineViewerElement extends HTMLElement {
 
         <!-- Playrange Bar (always visible) -->
         <div class="gtv-playrange-bar">
-          <div class="gtv-playrange-track">
-            <div class="gtv-playrange-inactive-left"></div>
-            <div class="gtv-playrange-active"></div>
-            <div class="gtv-playrange-inactive-right"></div>
-            <div class="gtv-playrange-fill"></div>
-            <div class="gtv-playrange-scrubber"></div>
+          <div class="gtv-playrange-scroll">
+            <div class="gtv-playrange-inner">
+              <div class="gtv-playrange-track">
+                <div class="gtv-playrange-inactive-left"></div>
+                <div class="gtv-playrange-active"></div>
+                <div class="gtv-playrange-inactive-right"></div>
+                <div class="gtv-playrange-fill"></div>
+                <div class="gtv-playrange-scrubber"></div>
+              </div>
+              <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
+              <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
+            </div>
           </div>
-          <div class="gtv-playrange-handle gtv-playrange-handle-start" data-handle="start"></div>
-          <div class="gtv-playrange-handle gtv-playrange-handle-end" data-handle="end"></div>
         </div>
 
         <!-- Timeline Area (hidden when collapsed) -->
         <div class="gtv-timeline-area">
           <!-- Ruler -->
           <div class="gtv-ruler">
-            <div class="gtv-ruler-inner"></div>
+            <div class="gtv-ruler-inner">
+              <div class="gtv-ruler-playhead-head"></div>
+            </div>
           </div>
 
           <!-- Tracks -->
           <div class="gtv-tracks-container">
             <div class="gtv-tracks-scroll">
               <div class="gtv-scrub-area"></div>
+              <!-- Playhead line inside tracksScroll for consistent coordinate system -->
+              <!-- Playhead head is in ruler-inner for visual positioning -->
+              <div class="gtv-playhead">
+                <div class="gtv-playhead-line"></div>
+              </div>
             </div>
             <div class="gtv-empty">No timeline attached. Call setTimeline() to visualize a GSAP timeline.</div>
-          </div>
-
-          <!-- Playhead spans entire timeline area -->
-          <div class="gtv-playhead-wrapper">
-            <div class="gtv-playhead">
-              <div class="gtv-playhead-head"></div>
-              <div class="gtv-playhead-line"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -354,11 +379,18 @@ export class TimelineViewerElement extends HTMLElement {
     this.loopMenu = this.shadow.querySelector('#loop-menu')!;
     this.speedDropdown = this.shadow.querySelector('.gtv-speed-dropdown')!;
     this.speedMenu = this.shadow.querySelector('#speed-menu')!;
+    this.zoomDropdown = this.shadow.querySelector('.gtv-zoom-dropdown')!;
+    this.zoomMenu = this.shadow.querySelector('#zoom-menu')!;
     this.timelineDropdown = this.shadow.querySelector('.gtv-timeline-dropdown')!;
     this.timelineMenu = this.shadow.querySelector('#timeline-menu')!;
     this.timeDisplay = this.shadow.querySelector('.gtv-time-display')!;
+    this.ruler = this.shadow.querySelector('.gtv-ruler')!;
     this.rulerInner = this.shadow.querySelector('.gtv-ruler-inner')!;
+    this.rulerPlayheadHead = this.shadow.querySelector('.gtv-ruler-playhead-head')!;
+    this.tracksContainer = this.shadow.querySelector('.gtv-tracks-container')!;
     this.tracksScroll = this.shadow.querySelector('.gtv-tracks-scroll')!;
+    this.playrangeScroll = this.shadow.querySelector('.gtv-playrange-scroll')!;
+    this.playrangeInner = this.shadow.querySelector('.gtv-playrange-inner')!;
     this.playhead = this.shadow.querySelector('.gtv-playhead')!;
     this.scrubArea = this.shadow.querySelector('.gtv-scrub-area')!;
     this.resizeHandle = this.shadow.querySelector('.gtv-resize-handle')!;
@@ -405,6 +437,7 @@ export class TimelineViewerElement extends HTMLElement {
       // Close other popovers first
       this.speedMenu.hidePopover();
       this.timelineMenu.hidePopover();
+      this.zoomMenu.hidePopover();
       // Only open if it wasn't already open before mousedown
       if (!loopMenuOpen) {
         this.loopMenu.showPopover();
@@ -432,6 +465,7 @@ export class TimelineViewerElement extends HTMLElement {
       // Close other popovers first
       this.loopMenu.hidePopover();
       this.timelineMenu.hidePopover();
+      this.zoomMenu.hidePopover();
       if (!speedMenuOpen) {
         this.speedMenu.showPopover();
       }
@@ -457,6 +491,43 @@ export class TimelineViewerElement extends HTMLElement {
       });
     });
 
+    // Zoom dropdown trigger
+    const zoomTrigger = this.zoomDropdown.querySelector('.gtv-dropdown-trigger')!;
+    let zoomMenuOpen = false;
+    zoomTrigger.addEventListener('mousedown', () => {
+      zoomMenuOpen = this.zoomMenu.matches(':popover-open');
+    });
+    zoomTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close other popovers first
+      this.loopMenu.hidePopover();
+      this.speedMenu.hidePopover();
+      this.timelineMenu.hidePopover();
+      if (!zoomMenuOpen) {
+        this.zoomMenu.showPopover();
+      }
+    });
+
+    // Position zoom popover when it opens, blur trigger when it closes
+    this.zoomMenu.addEventListener('toggle', (e) => {
+      const event = e as ToggleEvent;
+      if (event.newState === 'open') {
+        this.positionPopover(this.zoomMenu, zoomTrigger as HTMLElement);
+      } else {
+        (zoomTrigger as HTMLElement).blur();
+      }
+    });
+
+    // Zoom dropdown item clicks
+    this.zoomMenu.querySelectorAll('[data-zoom]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const zoom = parseFloat((item as HTMLElement).dataset.zoom!);
+        this.setZoom(zoom);
+        this.zoomMenu.hidePopover();
+      });
+    });
+
     // Timeline dropdown trigger
     const timelineTrigger = this.timelineDropdown.querySelector('.gtv-dropdown-trigger')!;
     let timelineMenuOpen = false;
@@ -468,6 +539,7 @@ export class TimelineViewerElement extends HTMLElement {
       // Close other popovers first
       this.loopMenu.hidePopover();
       this.speedMenu.hidePopover();
+      this.zoomMenu.hidePopover();
       if (!timelineMenuOpen) {
         this.timelineMenu.showPopover();
       }
@@ -503,8 +575,30 @@ export class TimelineViewerElement extends HTMLElement {
         if (track?.dataset.expandable === 'true') {
           e.stopPropagation();
           track.classList.toggle('expanded');
-          // Re-apply autofit after expand/collapse
-          requestAnimationFrame(() => this.applyAutofit());
+          // Re-apply autofit and alignment after expand/collapse
+          requestAnimationFrame(() => {
+            this.applyAutofit();
+            this.updateContentAlignment();
+          });
+        }
+      }
+
+      // Group header click to expand/collapse group
+      const groupHeader = target.closest('.gtv-group-header') as HTMLElement;
+      if (groupHeader) {
+        const group = groupHeader.closest('.gtv-timeline-group') as HTMLElement;
+        if (group?.dataset.expandable === 'true') {
+          e.stopPropagation();
+          const isExpanding = !group.classList.contains('expanded');
+          group.classList.toggle('expanded');
+          // Re-apply autofit and alignment after expand/collapse
+          requestAnimationFrame(() => {
+            this.applyAutofit();
+            // Only check alignment for children when expanding
+            if (isExpanding) {
+              this.updateContentAlignmentForElement(group.querySelector('.gtv-group-children'));
+            }
+          });
         }
       }
     });
@@ -589,7 +683,34 @@ export class TimelineViewerElement extends HTMLElement {
           e.preventDefault();
           this.resetPlayrange();
           break;
+        case 'Equal': // + (or =)
+        case 'NumpadAdd':
+          e.preventDefault();
+          this.zoomIn();
+          break;
+        case 'Minus':
+        case 'NumpadSubtract':
+          e.preventDefault();
+          this.zoomOut();
+          break;
+        case 'Digit0':
+        case 'Numpad0':
+          e.preventDefault();
+          this.resetZoom();
+          break;
       }
+    });
+
+    // Sync scroll between all scrollable containers
+    this.tracksContainer.addEventListener('scroll', () => {
+      this.ruler.scrollLeft = this.tracksContainer.scrollLeft;
+      this.playrangeScroll.scrollLeft = this.tracksContainer.scrollLeft;
+    });
+
+    // Sync from playrange scroll to other containers
+    this.playrangeScroll.addEventListener('scroll', () => {
+      this.ruler.scrollLeft = this.playrangeScroll.scrollLeft;
+      this.tracksContainer.scrollLeft = this.playrangeScroll.scrollLeft;
     });
   }
 
@@ -649,11 +770,18 @@ export class TimelineViewerElement extends HTMLElement {
 
   private onPlayrangeDrag(e: MouseEvent) {
     if (!this.draggingPlayrange) return;
-    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const progress = x / rect.width;
+    const inner = this.playrangeInner;
+    const scroll = this.playrangeScroll;
+    if (!inner || !scroll) return;
+
+    // Get scroll container's visible area and scroll position
+    const scrollRect = scroll.getBoundingClientRect();
+    const scrollPos = scroll.scrollLeft;
+    const innerWidth = inner.offsetWidth;
+
+    // Calculate x position relative to the full zoomed inner container
+    const x = Math.max(0, Math.min(e.clientX - scrollRect.left + scrollPos, innerWidth));
+    const progress = x / innerWidth;
 
     if (this.draggingPlayrange === 'start') {
       // Don't let start go past end
@@ -686,11 +814,19 @@ export class TimelineViewerElement extends HTMLElement {
 
   private onScrubberDrag(e: MouseEvent) {
     if (!this.draggingScrubber || !this.timeline) return;
-    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    let progress = x / rect.width;
+    const inner = this.playrangeInner;
+    const scroll = this.playrangeScroll;
+    if (!inner || !scroll) return;
+
+    // Get scroll container's visible area and scroll position
+    const scrollRect = scroll.getBoundingClientRect();
+    const scrollPos = scroll.scrollLeft;
+    const innerWidth = inner.offsetWidth;
+
+    // Calculate x position relative to the full zoomed inner container
+    const x = Math.max(0, Math.min(e.clientX - scrollRect.left + scrollPos, innerWidth));
+    let progress = x / innerWidth;
+
     // Constrain to playrange
     progress = Math.max(this.playrangeStart, Math.min(progress, this.playrangeEnd));
     this.timeline.progress(progress);
@@ -706,22 +842,19 @@ export class TimelineViewerElement extends HTMLElement {
   }
 
   private updatePlayrangeDisplay() {
-    const track = this.shadow.querySelector('.gtv-playrange-track') as HTMLElement;
     const handleStart = this.shadow.querySelector('.gtv-playrange-handle-start') as HTMLElement;
     const handleEnd = this.shadow.querySelector('.gtv-playrange-handle-end') as HTMLElement;
     const active = this.shadow.querySelector('.gtv-playrange-active') as HTMLElement;
     const inactiveLeft = this.shadow.querySelector('.gtv-playrange-inactive-left') as HTMLElement;
     const inactiveRight = this.shadow.querySelector('.gtv-playrange-inactive-right') as HTMLElement;
 
-    if (track && handleStart && handleEnd && active && inactiveLeft && inactiveRight) {
+    if (handleStart && handleEnd && active && inactiveLeft && inactiveRight) {
       const startPct = this.playrangeStart * 100;
       const endPct = this.playrangeEnd * 100;
 
-      // Position handles relative to bar using track's offset
-      const trackLeft = track.offsetLeft;
-      const trackWidth = track.offsetWidth;
-      handleStart.style.left = `${trackLeft + (this.playrangeStart * trackWidth)}px`;
-      handleEnd.style.left = `${trackLeft + (this.playrangeEnd * trackWidth)}px`;
+      // Position handles using percentages (relative to track, will scroll with content)
+      handleStart.style.left = `${startPct}%`;
+      handleEnd.style.left = `${endPct}%`;
 
       // Update active region (lighter area between handles)
       active.style.left = `${startPct}%`;
@@ -782,9 +915,15 @@ export class TimelineViewerElement extends HTMLElement {
   private scrubToPosition(e: MouseEvent) {
     if (!this.timeline || !this.timelineData) return;
 
-    const rect = this.rulerInner.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const progress = x / rect.width;
+    // Use tracksScroll for consistent coordinate system with track rendering
+    // Track bars are positioned as % of tracksScroll, so clicking should use the same reference
+    const inner = this.tracksScroll;
+    const innerRect = inner.getBoundingClientRect();
+    const innerWidth = inner.offsetWidth;
+
+    // Calculate position: click relative to inner element's visual position
+    const x = Math.max(0, Math.min(e.clientX - innerRect.left, innerWidth));
+    const progress = x / innerWidth;
 
     this.timeline.progress(progress);
     this.timeline.pause();
@@ -963,6 +1102,41 @@ export class TimelineViewerElement extends HTMLElement {
     });
   }
 
+  private setZoom(zoom: number) {
+    this.zoomLevel = zoom;
+    this.updateZoomDisplay();
+    this.renderTracks();
+  }
+
+  private zoomIn() {
+    const currentIndex = this.zoomLevels.indexOf(this.zoomLevel);
+    if (currentIndex < this.zoomLevels.length - 1) {
+      this.setZoom(this.zoomLevels[currentIndex + 1]);
+    }
+  }
+
+  private zoomOut() {
+    const currentIndex = this.zoomLevels.indexOf(this.zoomLevel);
+    if (currentIndex > 0) {
+      this.setZoom(this.zoomLevels[currentIndex - 1]);
+    }
+  }
+
+  private resetZoom() {
+    this.setZoom(1);
+  }
+
+  private updateZoomDisplay() {
+    const valueSpan = this.zoomDropdown.querySelector('.gtv-zoom-value')!;
+    valueSpan.textContent = this.zoomLevel === 1 ? 'Fit' : `${this.zoomLevel * 100}%`;
+
+    // Update menu selection
+    this.zoomMenu.querySelectorAll('[data-zoom]').forEach(item => {
+      const itemZoom = parseFloat((item as HTMLElement).dataset.zoom!);
+      item.classList.toggle('selected', itemZoom === this.zoomLevel);
+    });
+  }
+
   private toggleCollapse() {
     this.collapsed = !this.collapsed;
     this.container.classList.toggle('collapsed', this.collapsed);
@@ -1089,7 +1263,9 @@ export class TimelineViewerElement extends HTMLElement {
     if (!this.timeline || !this.timelineData) return;
 
     const progress = this.timeline.progress();
-    this.playhead.style.left = `${progress * 100}%`;
+    const pos = `${progress * 100}%`;
+    this.playhead.style.left = pos;
+    this.rulerPlayheadHead.style.left = pos;
 
     // Update collapsed mode progress indicator
     const fill = this.shadow.querySelector('.gtv-playrange-fill') as HTMLElement;
@@ -1141,11 +1317,17 @@ export class TimelineViewerElement extends HTMLElement {
   private renderTracks() {
     if (!this.timelineData) return;
 
-    const { duration, tweens } = this.timelineData;
+    const { duration, tweens, groups } = this.timelineData;
 
     // Hide empty state
     const emptyState = this.shadow.querySelector('.gtv-empty') as HTMLElement;
     emptyState.style.display = tweens.length > 0 ? 'none' : 'flex';
+
+    // Apply zoom level
+    const zoomWidth = `${this.zoomLevel * 100}%`;
+    this.tracksScroll.style.width = zoomWidth;
+    this.rulerInner.style.width = zoomWidth;
+    this.playrangeInner.style.width = zoomWidth;
 
     // Render ruler markers
     this.renderRuler(duration);
@@ -1153,20 +1335,98 @@ export class TimelineViewerElement extends HTMLElement {
     // Render grid lines
     const gridLines = this.renderGridLines(duration);
 
-    // Render track bars
-    const tracksHtml = tweens
-      .map((tween) => this.renderTrack(tween, duration))
-      .join('');
+    // Build a map of group id -> color index for consistent coloring
+    const groupColorMap = new Map<string, number>();
+    groups.forEach((group, index) => {
+      groupColorMap.set(group.id, index % 6);
+    });
 
-    // Get existing structure elements
+    // Group tweens by parentTimelineId
+    const ungroupedTweens: TweenData[] = [];
+    const groupedTweens = new Map<string, TweenData[]>();
+
+    tweens.forEach(tween => {
+      if (tween.parentTimelineId) {
+        const existing = groupedTweens.get(tween.parentTimelineId);
+        if (existing) {
+          existing.push(tween);
+        } else {
+          groupedTweens.set(tween.parentTimelineId, [tween]);
+        }
+      } else {
+        ungroupedTweens.push(tween);
+      }
+    });
+
+    // Render all tracks - ungrouped first, then groups
+    let tracksHtml = '';
+
+    // Render ungrouped tweens
+    ungroupedTweens.forEach(tween => {
+      tracksHtml += this.renderTrack(tween, duration);
+    });
+
+    // Render groups with their tweens
+    groups.forEach(group => {
+      const groupTweens = groupedTweens.get(group.id) || [];
+      if (groupTweens.length > 0) {
+        tracksHtml += this.renderGroup(group, groupTweens, duration, groupColorMap.get(group.id) || 0);
+      }
+    });
+
+    // Get existing structure elements (playhead and scrubArea are in the initial HTML)
     const scrubArea = this.tracksScroll.querySelector('.gtv-scrub-area')!;
+    const playhead = this.tracksScroll.querySelector('.gtv-playhead')!;
 
     // Clear and rebuild
     this.tracksScroll.innerHTML = gridLines + tracksHtml;
     this.tracksScroll.prepend(scrubArea);
+    this.tracksScroll.appendChild(playhead);
 
-    // Re-attach scrub area reference
+    // Re-attach references
     this.scrubArea = scrubArea as HTMLDivElement;
+    this.playhead = playhead as HTMLDivElement;
+
+    // Update content alignment based on actual DOM measurements
+    this.updateContentAlignment();
+  }
+
+  /**
+   * Dynamically update bar content alignment based on actual DOM measurements.
+   * Right-aligns bars whose content would overflow past the timeline boundary.
+   */
+  private updateContentAlignment(): void {
+    this.updateContentAlignmentForElement(this.tracksScroll);
+  }
+
+  /**
+   * Update content alignment for bars within a specific container element.
+   */
+  private updateContentAlignmentForElement(container: Element | null): void {
+    if (!container) return;
+
+    const timelineWidth = this.tracksScroll.offsetWidth;
+    if (timelineWidth === 0) return;
+
+    // Check all bars (group-bar and track-bar) within the container
+    container.querySelectorAll('.gtv-group-bar, .gtv-track-bar').forEach(bar => {
+      const el = bar as HTMLElement;
+
+      // Calculate absolute left position relative to tracksScroll
+      // (handles nested elements inside groups)
+      let absoluteLeft = el.offsetLeft;
+      let parent = el.offsetParent as HTMLElement | null;
+      while (parent && parent !== this.tracksScroll) {
+        absoluteLeft += parent.offsetLeft;
+        parent = parent.offsetParent as HTMLElement | null;
+      }
+
+      const contentWidth = el.scrollWidth;
+      const contentEnd = absoluteLeft + contentWidth;
+
+      // If content extends past timeline boundary, right-align
+      el.classList.toggle('gtv-align-right', contentEnd > timelineWidth);
+    });
   }
 
   private renderGridLines(duration: number): string {
@@ -1195,7 +1455,11 @@ export class TimelineViewerElement extends HTMLElement {
       `);
     }
 
+    // Preserve the playhead head element before clearing innerHTML
+    const playheadHead = this.rulerInner.querySelector('.gtv-ruler-playhead-head')!;
     this.rulerInner.innerHTML = markers.join('');
+    this.rulerInner.appendChild(playheadHead);
+    this.rulerPlayheadHead = playheadHead as HTMLDivElement;
 
     // Render label lines in timeline area (full height)
     this.renderLabelLines(duration);
@@ -1241,12 +1505,33 @@ export class TimelineViewerElement extends HTMLElement {
     return 10;
   }
 
-  private renderEaseCurve(samples: number[] | undefined): string {
+  private renderEaseCurve(samples: number[] | undefined, repeat?: number, yoyo?: boolean): string {
     if (!samples?.length) return '';
 
+    // Build expanded samples array for repeat/yoyo
+    let expandedSamples: number[] = [...samples];
+
+    if (repeat && repeat > 0) {
+      const totalIterations = 1 + repeat; // original + repeats
+      const allSamples: number[] = [];
+
+      for (let i = 0; i < totalIterations; i++) {
+        // For yoyo, alternate direction
+        const isReversed = yoyo && i % 2 === 1;
+        const iterSamples = isReversed ? [...samples].reverse() : samples;
+
+        // Skip first point of subsequent iterations to avoid duplicate at join
+        const startIdx = i === 0 ? 0 : 1;
+        for (let j = startIdx; j < iterSamples.length; j++) {
+          allSamples.push(iterSamples[j]);
+        }
+      }
+      expandedSamples = allSamples;
+    }
+
     // Find actual range (elastic/bounce/back can go outside 0-1)
-    const minY = Math.min(...samples);
-    const maxY = Math.max(...samples);
+    const minY = Math.min(...expandedSamples);
+    const maxY = Math.max(...expandedSamples);
     const yMin = Math.min(0, minY);
     const yMax = Math.max(1, maxY);
     const yRange = yMax - yMin || 1;
@@ -1256,8 +1541,8 @@ export class TimelineViewerElement extends HTMLElement {
     const contentHeight = 100 - padY * 2;
 
     // Map values to SVG coordinates, scaled to actual range, with vertical padding
-    const points = samples.map((y, i) => {
-      const x = (i / (samples.length - 1)) * 100;
+    const points = expandedSamples.map((y, i) => {
+      const x = (i / (expandedSamples.length - 1)) * 100;
       const yPos = padY + ((yMax - y) / yRange) * contentHeight;
       return { x, y: yPos };
     });
@@ -1292,20 +1577,96 @@ export class TimelineViewerElement extends HTMLElement {
     `;
   }
 
-  private renderTrack(tween: TweenData, totalDuration: number): string {
+  /**
+   * Determine label position class based on bar width and position.
+   * Currently disabled - labels always stay inside bars with overflow hidden.
+   */
+  private getLabelPositionClass(_label: string, _widthPercent: number, _leftPercent: number): string {
+    // Smart label positioning disabled - too aggressive and causes display issues
+    // Labels stay inside bars with text-overflow: ellipsis
+    return '';
+  }
+
+
+  private renderGroup(group: TimelineGroupData, tweens: TweenData[], totalDuration: number, colorIndex: number): string {
+    const left = (group.startTime / totalDuration) * 100;
+    const width = ((group.endTime - group.startTime) / totalDuration) * 100;
+    const groupDuration = group.endTime - group.startTime;
+    const trackHues = [220, 70, 350, 160, 290, 25];
+    const hue = trackHues[colorIndex % 6];
+    const cssColorIndex = colorIndex + 1;
+
+    // Render child tweens
+    const childTracksHtml = tweens
+      .map(tween => this.renderTrack(tween, totalDuration, colorIndex))
+      .join('');
+
+    // Overlap/gap visual indicator and inline offset badge
+    let overlapHtml = '';
+    let offsetBadge = '';
+    let offsetText = '';
+    if (group.positionOffset !== undefined) {
+      const isOverlap = group.positionOffset > 0;
+      const overlapWidth = (Math.abs(group.positionOffset) / totalDuration) * 100;
+
+      if (isOverlap) {
+        offsetText = `${formatTime(group.positionOffset)}s`;
+        offsetBadge = `<span class="gtv-offset-badge">${offsetText}</span>`;
+        overlapHtml = `<div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>`;
+      } else {
+        offsetText = `+${formatTime(Math.abs(group.positionOffset))}s`;
+        offsetBadge = `<span class="gtv-offset-badge">${offsetText}</span>`;
+        const gapLeft = left - overlapWidth;
+        overlapHtml = `<div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>`;
+      }
+    }
+
+    const infoText = `${formatTime(groupDuration)}s · ${group.tweenCount} tweens`;
+
+    return `
+      <div class="gtv-timeline-group" data-group-id="${group.id}" data-expandable="true">
+        <div class="gtv-group-header" style="--group-color: var(--gtv-track-${cssColorIndex}); --track-hue: ${hue};">
+          ${overlapHtml}
+          <div class="gtv-group-bar" style="left: ${left}%; width: ${width}%;">
+            <span class="gtv-group-expand"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg></span>
+            <span class="gtv-group-name">${group.name}</span>
+            <span class="gtv-group-info">${infoText}</span>
+            ${offsetBadge}
+          </div>
+        </div>
+        <div class="gtv-group-children" style="--group-border-color: var(--gtv-track-${cssColorIndex});">
+          ${childTracksHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderTrack(tween: TweenData, totalDuration: number, groupColorIndex?: number): string {
     const left = (tween.startTime / totalDuration) * 100;
     const width = (tween.duration / totalDuration) * 100;
-    const colorIndex = tween.colorIndex + 1;
+    // Use group color if part of a group, otherwise use tween's own color
+    const effectiveColorIndex = groupColorIndex !== undefined ? groupColorIndex : tween.colorIndex;
+    const colorIndex = effectiveColorIndex + 1;
     const trackHues = [220, 70, 350, 160, 290, 25]; // Matches CSS track colors
-    const hue = trackHues[tween.colorIndex % 6];
+    const hue = trackHues[effectiveColorIndex % 6];
 
-    // Ease curve SVG
-    const easeCurveHtml = this.renderEaseCurve(tween.easeSamples);
+    // Ease curve SVG (includes repeat/yoyo pattern)
+    const easeCurveHtml = this.renderEaseCurve(tween.easeSamples, tween.repeat, tween.yoyo);
 
-    // Stagger indicator with expand arrow
+    // Determine label positioning
+    const labelPosClass = this.getLabelPositionClass(tween.label, width, left);
+
+    // Stagger indicator - just dropdown arrow
     let staggerLabel = '';
     if (tween.hasStagger && tween.staggerChildren && tween.staggerChildren.length > 0) {
-      staggerLabel = `<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="10" height="10"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg> Stagger</span>`;
+      staggerLabel = `<span class="gtv-track-stagger"><svg class="gtv-expand-icon" viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg></span>`;
+    }
+
+    // Repeat/yoyo indicator
+    let repeatLabel = '';
+    if (tween.repeat && tween.repeat > 0) {
+      const yoyoIndicator = tween.yoyo ? ' ↔' : '';
+      repeatLabel = `<span class="gtv-repeat-badge">↻${tween.repeat}${yoyoIndicator}</span>`;
     }
 
     // Build stagger children HTML
@@ -1314,12 +1675,13 @@ export class TimelineViewerElement extends HTMLElement {
       const childBars = tween.staggerChildren.map((child) => {
         const childLeft = (child.startTime / totalDuration) * 100;
         const childWidth = ((child.endTime - child.startTime) / totalDuration) * 100;
+        const childLabelPosClass = this.getLabelPositionClass(child.targetLabel, childWidth, childLeft);
         return `
           <div class="gtv-stagger-child">
             <div class="gtv-stagger-child-bar"
                  style="left: ${childLeft}%; width: ${childWidth}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex}); --track-hue: ${hue};">
               ${easeCurveHtml}
-              <span class="gtv-track-label">${child.targetLabel}</span>
+              <span class="gtv-track-label${childLabelPosClass ? ' ' + childLabelPosClass : ''}">${child.targetLabel}</span>
             </div>
           </div>
         `;
@@ -1328,44 +1690,41 @@ export class TimelineViewerElement extends HTMLElement {
       childrenHtml = `<div class="gtv-stagger-children" data-for="${tween.id}">${childBars}</div>`;
     }
 
-    // Overlap/gap indicator
+    // Overlap/gap visual indicator (just the line/region, badge is now inside track-bar)
     let overlapHtml = '';
+    let offsetBadge = '';
+    let offsetText = '';
     if (tween.overlapWithPrev !== undefined) {
       const isOverlap = tween.overlapWithPrev > 0;
       const overlapWidth = (Math.abs(tween.overlapWithPrev) / totalDuration) * 100;
-      // Position badge on right if it would clip off left edge
-      const badgeOnRight = left < 10;
-      const badgeClass = badgeOnRight ? ' gtv-badge-right' : '';
-      const badgeLeft = badgeOnRight ? left + width : left;
 
       if (isOverlap) {
         // Overlap: show relative offset (negative)
-        const offsetLabel = `-${formatTime(tween.overlapWithPrev)}s`;
-        overlapHtml = `
-          <div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-overlap${badgeClass}" style="left: ${badgeLeft}%;">${offsetLabel}</span>
-        `;
+        offsetText = `${formatTime(tween.overlapWithPrev)}s`;
+        offsetBadge = `<span class="gtv-offset-badge">${offsetText}</span>`;
+        overlapHtml = `<div class="gtv-overlap-region" style="left: ${left}%; width: ${overlapWidth}%;"></div>`;
       } else {
         // Gap: show relative offset (positive)
-        const offsetLabel = `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
+        offsetText = `+${formatTime(Math.abs(tween.overlapWithPrev))}s`;
+        offsetBadge = `<span class="gtv-offset-badge">${offsetText}</span>`;
         const gapLeft = left - overlapWidth;
-        overlapHtml = `
-          <div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>
-          <span class="gtv-offset-badge gtv-offset-gap${badgeClass}" style="left: ${badgeLeft}%;">${offsetLabel}</span>
-        `;
+        overlapHtml = `<div class="gtv-gap-connector" style="left: ${gapLeft}%; width: ${overlapWidth}%;"></div>`;
       }
     }
 
     return `
-      <div class="gtv-track" data-expandable="${tween.hasStagger && tween.staggerChildren ? 'true' : 'false'}">
+      <div class="gtv-track"
+           data-expandable="${tween.hasStagger && tween.staggerChildren ? 'true' : 'false'}">
         ${overlapHtml}
         <div class="gtv-track-bar"
              data-color="${colorIndex}"
              data-tween-id="${tween.id}"
              style="left: ${left}%; width: ${width}%; background: var(--gtv-track-${colorIndex}); --track-color: var(--gtv-track-${colorIndex}); --track-hue: ${hue};">
           ${easeCurveHtml}
-          <span class="gtv-track-label">${tween.label}</span>
           ${staggerLabel}
+          <span class="gtv-track-label${labelPosClass ? ' ' + labelPosClass : ''}">${tween.label}</span>
+          ${repeatLabel}
+          ${offsetBadge}
         </div>
         ${childrenHtml}
       </div>
