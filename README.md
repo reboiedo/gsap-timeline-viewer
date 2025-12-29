@@ -4,7 +4,9 @@ A lightweight, framework-agnostic development tool for visualizing and debugging
 
 ![GSAP Timeline Viewer](https://raw.githubusercontent.com/reboiedo/gsap-timeline-viewer/main/screenshot.png)
 
-**~7 KB gzipped** | Works with React, Vue, Angular, Svelte, or vanilla JS
+**~11 KB gzipped** | Works with React, Vue, Angular, Svelte, or vanilla JS
+
+[**▶ Try it on CodePen**](https://codepen.io/ry2/pen/GgqJvYJ)
 
 ## Features
 
@@ -14,10 +16,10 @@ A lightweight, framework-agnostic development tool for visualizing and debugging
 - **Ease curve visualization** - Toggle to see ease curves as track shapes
 - **Stagger expansion** - Expand staggered animations to see individual targets
 - **Overlap/gap indicators** - Visual badges showing `-=` and `+=` timing offsets
-- **Playback controls** - Play/pause, skip, speed control (0.25x to 4x), loop
+- **Playback controls** - Play/pause, reverse, skip, speed (0.25x–4x), loop modes
 - **Scrubbing** - Click or drag anywhere on the timeline
 - **Resizable** - Drag the top edge to resize
-- **Keyboard shortcuts** - Space, J, K, L
+- **Keyboard shortcuts** - Full keyboard control for playback and navigation
 - **Timeline selector** - Switch between multiple timelines
 - **Collapsible panel** - Minimize when not in use
 - **Persistent settings** - Panel size, playrange, and preferences saved
@@ -94,9 +96,15 @@ viewer.select('Other Timeline');
 | Key | Action |
 |-----|--------|
 | `Space` | Play / Pause |
+| `R` | Reverse |
 | `J` | Jump to previous point |
 | `K` | Jump to next point |
-| `L` | Toggle loop |
+| `O` | Oneshot mode |
+| `L` | Loop mode |
+| `P` | Ping-pong mode |
+| `[` | Set playrange start |
+| `]` | Set playrange end |
+| `\` | Reset playrange |
 
 ## Named Tweens
 
@@ -140,12 +148,6 @@ This is required because ES module imports don't set `window.gsap`.
   gsap.timeline({ id: 'Main' })
     .to('.box', { x: 100, duration: 1 });
 </script>
-```
-
-## IIFE (Self-executing)
-
-```html
-<script src="https://unpkg.com/gsap-timeline-viewer/dist/gsap-timeline-viewer.iife.js"></script>
 ```
 
 ## Disabling Auto-Detection
